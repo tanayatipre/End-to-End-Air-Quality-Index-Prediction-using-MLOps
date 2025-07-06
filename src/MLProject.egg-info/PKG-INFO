@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: MLProject
+Version: 0.0.0
+Summary: A small python package for ml app
+Home-page: https://github.com/tanayatipre/End-to-End-Machine-Learning-Project-with-MLFlow
+Author: tanayatipre
+Author-email: tanayatipre8@gmail.com
+Project-URL: Bug Tracker, https://github.com/tanayatipre/End-to-End-Machine-Learning-Project-with-MLFlow/issues
+License-File: LICENSE
