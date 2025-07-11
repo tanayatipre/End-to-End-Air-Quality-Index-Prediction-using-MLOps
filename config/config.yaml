@@ -1,0 +1,7 @@
+artifacts_root: artifacts
+
+data ingestion:
+  root_dir: artifacts/data_ingestion
+  source_URL: https://github.com/tanayatipre/End-to-End-Machine-Learning-Project-with-MLFlow/raw/refs/heads/main/winequality.zip
+  local_data_file: artifacts/data_ingestion/data.zip
+  unzip_dir: artifacts/data_ingestion
