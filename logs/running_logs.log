@@ -109,3 +109,179 @@ Source-Age: 0
 [2025-07-11 16:09:02,896: INFO: main: >>>>>> stage Data Ingestion Stage completed <<<<<<
 
 x==========x]
+[2025-07-11 16:52:43,071: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-11 16:52:43,071: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-11 16:52:43,071: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-11 16:52:43,079: INFO: common: created directory at artifacts]
+[2025-07-11 16:55:14,276: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-11 16:55:14,279: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-11 16:55:14,280: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-11 16:55:14,280: INFO: common: created directory at artifacts]
+[2025-07-11 17:03:28,424: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-11 17:03:28,428: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-11 17:03:28,452: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-11 17:03:28,453: INFO: common: created directory at artifacts]
+[2025-07-11 17:03:28,453: INFO: common: created directory at artifacts/data_validation]
+[2025-07-11 18:18:18,158: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-11 18:18:18,167: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-11 18:18:18,174: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-11 18:18:18,175: INFO: common: created directory at artifacts]
+[2025-07-11 18:18:18,175: INFO: common: created directory at artifacts/data_transformation]
+[2025-07-11 18:18:18,241: INFO: 2730268761: splited data into training and testing sets]
+[2025-07-11 18:18:18,241: INFO: 2730268761: (1199, 12)]
+[2025-07-11 18:18:18,241: INFO: 2730268761: (400, 12)]
+[2025-07-12 12:46:39,402: INFO: main: >>>>>> stage Data Ingestion Stage started <<<<<<]
+[2025-07-12 12:46:39,410: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-12 12:46:39,427: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-12 12:46:39,450: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-12 12:46:39,459: INFO: common: created directory at artifacts]
+[2025-07-12 12:46:39,461: INFO: common: created directory at artifacts/data_ingestion]
+[2025-07-12 12:46:39,461: INFO: data_ingestion: File already exists of size: ~ 26 KB]
+[2025-07-12 12:46:39,491: INFO: main: >>>>>> stage Data Ingestion Stage completed <<<<<<
+
+x==========x]
+[2025-07-12 12:46:39,496: INFO: main: >>>>>> stage Data Validation Stage started <<<<<<]
+[2025-07-12 12:46:39,500: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-12 12:46:39,500: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-12 12:46:39,500: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-12 12:46:39,507: INFO: common: created directory at artifacts]
+[2025-07-12 12:46:39,507: ERROR: main: name 'DataValidation' is not defined]
+Traceback (most recent call last):
+  File "C:\Users\Tanaya\Downloads\Projects\End-to-End-Machine-Learning-Project-with-MLFlow\main.py", line 20, in <module>
+    obj.main()
+  File "c:\users\tanaya\downloads\projects\end-to-end-machine-learning-project-with-mlflow\src\MLProject\pipeline\data_validation_02.py", line 16, in main
+    data_validation = DataValidation(config=data_validation_config)
+NameError: name 'DataValidation' is not defined
+[2025-07-14 18:13:35,811: INFO: main: >>>>>> stage Data Ingestion Stage started <<<<<<]
+[2025-07-14 18:13:35,824: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 18:13:35,834: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 18:13:35,849: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 18:13:35,849: INFO: common: created directory at artifacts]
+[2025-07-14 18:13:35,850: INFO: common: created directory at artifacts/data_ingestion]
+[2025-07-14 18:13:36,859: INFO: data_ingestion: artifacts/data_ingestion/data.zip downloaded! with following info: 
+Connection: close
+Content-Length: 26148
+Cache-Control: max-age=300
+Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+Content-Type: application/zip
+ETag: "d9ff3bbeb18ae65114692490179c798b2504f76c0e96bf8521dc224564f8c57d"
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+X-GitHub-Request-Id: 3276:2DB064:2B12BE:855464:6874FB77
+Accept-Ranges: bytes
+Date: Mon, 14 Jul 2025 12:43:36 GMT
+Via: 1.1 varnish
+X-Served-By: cache-hyd1100027-HYD
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1752497016.977003,VS0,VE306
+Vary: Authorization,Accept-Encoding
+Access-Control-Allow-Origin: *
+Cross-Origin-Resource-Policy: cross-origin
+X-Fastly-Request-ID: 69b494ef22bca2d79851777658d13dec0768e1fd
+Expires: Mon, 14 Jul 2025 12:48:36 GMT
+Source-Age: 0
+
+]
+[2025-07-14 18:13:36,925: INFO: main: >>>>>> stage Data Ingestion Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 18:13:36,927: INFO: main: >>>>>> stage Data Validation Stage started <<<<<<]
+[2025-07-14 18:13:36,930: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 18:13:36,949: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 18:13:36,953: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 18:13:36,953: INFO: common: created directory at artifacts]
+[2025-07-14 18:13:36,954: ERROR: main: 'function' object has no attribute 'unzip_data_dir']
+Traceback (most recent call last):
+  File "C:\Users\Tanaya\Downloads\Projects\End-to-End-Machine-Learning-Project-with-MLFlow\main.py", line 20, in <module>
+    obj.main()
+  File "c:\users\tanaya\downloads\projects\end-to-end-machine-learning-project-with-mlflow\src\MLProject\pipeline\data_validation_02.py", line 17, in main
+    data_validation.validate_all_columns()
+  File "c:\users\tanaya\downloads\projects\end-to-end-machine-learning-project-with-mlflow\src\MLProject\components\data_validation.py", line 32, in validate_all_columns
+    raise e
+  File "c:\users\tanaya\downloads\projects\end-to-end-machine-learning-project-with-mlflow\src\MLProject\components\data_validation.py", line 14, in validate_all_columns
+    data = pd.read_csv(self.config.unzip_data_dir)
+AttributeError: 'function' object has no attribute 'unzip_data_dir'
+[2025-07-14 18:37:39,371: INFO: main: >>>>>> stage Data Ingestion Stage started <<<<<<]
+[2025-07-14 18:37:39,373: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 18:37:39,375: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 18:37:39,377: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 18:37:39,377: INFO: common: created directory at artifacts]
+[2025-07-14 18:37:39,377: INFO: common: created directory at artifacts/data_ingestion]
+[2025-07-14 18:37:39,377: INFO: data_ingestion: File already exists of size: ~ 26 KB]
+[2025-07-14 18:37:39,377: INFO: main: >>>>>> stage Data Ingestion Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 18:37:39,377: INFO: main: >>>>>> stage Data Validation Stage started <<<<<<]
+[2025-07-14 18:37:39,383: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 18:37:39,383: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 18:37:39,387: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 18:37:39,387: INFO: common: created directory at artifacts]
+[2025-07-14 18:37:39,387: INFO: common: created directory at artifacts/data_validation]
+[2025-07-14 18:37:39,418: INFO: main: >>>>>> stage Data Validation Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 18:37:39,418: INFO: main: >>>>>> stage Data Transformation Stage started <<<<<<]
+[2025-07-14 18:37:39,429: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 18:37:39,431: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 18:37:39,432: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 18:37:39,433: INFO: common: created directory at artifacts]
+[2025-07-14 18:37:39,433: INFO: common: created directory at artifacts/data_transformation]
+[2025-07-14 18:37:39,455: INFO: data_transformation: splited data into training and testing sets]
+[2025-07-14 18:37:39,455: INFO: data_transformation: (1199, 12)]
+[2025-07-14 18:37:39,455: INFO: data_transformation: (400, 12)]
+[2025-07-14 18:37:39,462: INFO: main: >>>>>> stage Data Transformation Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 19:26:56,680: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 19:26:56,701: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 19:26:56,705: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 19:26:56,708: INFO: common: created directory at artifacts]
+[2025-07-14 19:26:56,710: INFO: common: created directory at artifacts/model_trainer]
+[2025-07-14 19:38:02,343: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 19:38:02,351: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 19:38:02,357: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 19:38:02,363: INFO: common: created directory at artifacts]
+[2025-07-14 19:38:02,368: INFO: common: created directory at artifacts/model_trainer]
+[2025-07-14 19:54:23,129: INFO: main: >>>>>> stage Data Ingestion Stage started <<<<<<]
+[2025-07-14 19:54:23,150: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 19:54:23,180: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 19:54:23,195: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 19:54:23,195: INFO: common: created directory at artifacts]
+[2025-07-14 19:54:23,208: INFO: common: created directory at artifacts/data_ingestion]
+[2025-07-14 19:54:23,210: INFO: data_ingestion: File already exists of size: ~ 26 KB]
+[2025-07-14 19:54:23,244: INFO: main: >>>>>> stage Data Ingestion Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 19:54:23,246: INFO: main: >>>>>> stage Data Validation Stage started <<<<<<]
+[2025-07-14 19:54:23,249: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 19:54:23,249: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 19:54:23,256: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 19:54:23,259: INFO: common: created directory at artifacts]
+[2025-07-14 19:54:23,259: INFO: common: created directory at artifacts/data_validation]
+[2025-07-14 19:54:23,290: INFO: main: >>>>>> stage Data Validation Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 19:54:23,291: INFO: main: >>>>>> stage Data Transformation Stage started <<<<<<]
+[2025-07-14 19:54:23,312: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 19:54:23,312: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 19:54:23,318: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 19:54:23,323: INFO: common: created directory at artifacts]
+[2025-07-14 19:54:23,325: INFO: common: created directory at artifacts/data_transformation]
+[2025-07-14 19:54:23,358: INFO: data_transformation: splited data into training and testing sets]
+[2025-07-14 19:54:23,366: INFO: data_transformation: (1199, 12)]
+[2025-07-14 19:54:23,366: INFO: data_transformation: (400, 12)]
+[2025-07-14 19:54:23,367: INFO: main: >>>>>> stage Data Transformation Stage completed <<<<<<
+
+x==========x]
+[2025-07-14 19:54:23,367: INFO: main: >>>>>> stage Model Trainer Stage started <<<<<<]
+[2025-07-14 19:54:23,369: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-14 19:54:23,374: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-14 19:54:23,379: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-14 19:54:23,380: INFO: common: created directory at artifacts]
+[2025-07-14 19:54:23,382: INFO: common: created directory at artifacts/model_trainer]
+[2025-07-14 19:54:23,457: INFO: main: >>>>>> stage Model Trainer Stage completed <<<<<<
+
+x==========x]
