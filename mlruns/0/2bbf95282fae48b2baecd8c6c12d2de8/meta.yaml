@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Tanaya/Downloads/Projects/End-to-End-Machine-Learning-Project-with-MLFlow/mlruns/0/2bbf95282fae48b2baecd8c6c12d2de8/artifacts
+end_time: 1752600953500
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 2bbf95282fae48b2baecd8c6c12d2de8
+run_name: funny-tern-675
+run_uuid: 2bbf95282fae48b2baecd8c6c12d2de8
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1752600947142
+status: 3
+tags: []
+user_id: Tanaya
