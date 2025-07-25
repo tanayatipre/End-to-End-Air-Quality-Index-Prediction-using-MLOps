@@ -1,0 +1,364 @@
+/* General Body and Font Styles */
+body {
+    /* Use a font stack that prioritizes Lora for headings and Open Sans/Roboto for body */
+    font-family: 'Open Sans', 'Roboto', sans-serif;
+    color: #333;
+    background-color: #f8f9fa; /* Light background for the whole page */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Navbar Styling */
+#mainNav {
+    background-color: #343a40; /* Dark background for navbar */
+    padding: 1rem 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
+
+#mainNav .navbar-brand {
+    font-family: 'Lora', serif; /* Use Lora for brand name */
+    color: #f8f9fa;
+    font-weight: 700;
+    font-size: 1.8rem; /* Slightly larger brand */
+}
+
+#mainNav .navbar-brand .fas {
+    color: #66ccff; /* A specific color for the smog icon */
+}
+
+#mainNav .nav-link {
+    font-family: 'Open Sans', 'Roboto', sans-serif; /* Consistent nav font */
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+#mainNav .nav-link:hover {
+    color: #ffffff;
+}
+
+#mainNav .navbar-toggler {
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Masthead (Hero Section) */
+.masthead {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    padding: 10rem 0 7rem 0;
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+}
+
+.masthead::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55); /* Slightly darker overlay for better text contrast */
+    z-index: 1;
+}
+
+.masthead .container {
+    position: relative;
+    z-index: 2;
+}
+
+.masthead .site-heading h1 {
+    font-family: 'Lora', serif; /* Use Lora for main heading */
+    font-size: 3.8rem; /* Slightly smaller for better balance */
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Text shadow for pop */
+}
+
+.masthead .subheading {
+    font-family: 'Open Sans', 'Roboto', sans-serif; /* Consistent subheading font */
+    font-size: 1.35rem; /* Slightly larger for readability */
+    font-weight: 400;
+    line-height: 1.6;
+    display: block;
+    margin-top: 1rem;
+    opacity: 0.95; /* Less transparent */
+}
+
+@media (min-width: 768px) {
+    .masthead .site-heading h1 {
+        font-size: 5rem;
+    }
+}
+
+
+/* Main Content Area */
+.page-content {
+    flex-grow: 1;
+    padding: 4rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Form Container Styling */
+.form-v9-content {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18); /* More pronounced shadow for depth */
+    padding: 35px 45px; /* Slightly more padding */
+    max-width: 950px; /* Slightly wider */
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto; /* Center in page-content */
+}
+
+.form-v9-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.92); /* More opaque white overlay for better contrast with form elements */
+    z-index: 1;
+}
+
+.form-detail {
+    position: relative;
+    z-index: 2;
+}
+
+.form-detail h2 {
+    font-family: 'Lora', serif; /* Lora for form heading */
+    text-align: center;
+    margin-bottom: 35px; /* More space below heading */
+    font-size: 2.5em; /* Slightly larger */
+    color: #212529; /* Darker text */
+    font-weight: 700;
+}
+
+/* Form Row Layout */
+.form-row-total {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 25px; /* More space between rows */
+    gap: 30px; /* More space between columns */
+}
+
+.form-row {
+    flex: 1;
+    min-width: 300px; /* Slightly larger min-width */
+}
+
+.form-group-custom {
+    margin-bottom: 20px; /* More space between form groups */
+}
+
+.form-group-custom label {
+    font-family: 'Open Sans', 'Roboto', sans-serif; /* Consistent label font */
+    display: block;
+    margin-bottom: 10px; /* More space below label */
+    font-weight: 600;
+    color: #495057; /* Darker gray for labels */
+    font-size: 1.05rem;
+}
+
+.form-group-custom .input-text,
+.form-group-custom select {
+    font-family: 'Open Sans', 'Roboto', sans-serif; /* Consistent input font */
+    width: 100%;
+    padding: 14px 18px; /* More padding for larger inputs */
+    border: 1px solid #c2c9d1; /* Slightly darker border */
+    border-radius: 8px; /* Slightly more rounded corners */
+    font-size: 1.05rem;
+    color: #343a40;
+    background-color: #ffffff; /* White background for inputs */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group-custom .input-text:focus,
+.form-group-custom select:focus {
+    border-color: #007bff; /* Primary brand color on focus */
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.35); /* More prominent shadow on focus */
+}
+
+.form-group-custom select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}
+
+.form-row-last {
+    text-align: center;
+    margin-top: 40px; /* More space above button */
+}
+
+.form-row-last .register {
+    background-color: #007bff;
+    color: white;
+    padding: 18px 35px; /* Larger button */
+    border: none;
+    border-radius: 10px; /* More rounded button */
+    font-size: 1.3em; /* Larger text */
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25); /* Shadow for the button */
+}
+
+.form-row-last .register:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px); /* More pronounced lift effect */
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.35);
+}
+
+/* Footer Styling */
+footer {
+    padding: 2.5rem 0;
+    font-size: 0.9em;
+    color: #6c757d;
+    background-color: #e9ecef;
+    margin-top: auto;
+}
+
+footer .list-inline-item a {
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+footer .list-inline-item a:hover {
+    color: #007bff;
+}
+
+footer .fa-stack-2x {
+    color: #fff;
+}
+footer .fa-stack-1x {
+    color: #6c757d;
+}
+
+
+/* Results Page Styling */
+.result-box {
+    background-color: #ffffff;
+    padding: 50px 40px; /* Increased padding */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); /* Softer, larger shadow */
+    text-align: center;
+    max-width: 550px; /* Slightly wider */
+    width: 100%;
+    margin: 4rem auto; /* Center the box */
+}
+
+.result-box h1 {
+    font-family: 'Lora', serif; /* Use Lora for results heading */
+    font-size: 3em; /* Larger heading */
+    color: #343a40;
+    margin-bottom: 30px;
+}
+
+.result-box p {
+    font-family: 'Open Sans', 'Roboto', sans-serif; /* Consistent body font */
+    font-size: 1.2em; /* Larger paragraph text */
+    color: #555;
+    margin-bottom: 15px; /* More space */
+    line-height: 1.6;
+}
+
+.aqi-score {
+    font-family: 'Lora', serif; /* Lora for the score */
+    display: block;
+    font-size: 4.5em; /* Significantly larger score */
+    font-weight: 700;
+    color: #007bff; /* Primary brand color */
+    margin-bottom: 40px; /* More space below score */
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.2); /* Shadow for score */
+}
+
+.aqi-category {
+    font-family: 'Open Sans', 'Roboto', sans-serif; /* Consistent font for category */
+    font-weight: bold;
+    padding: 15px 30px; /* Larger padding for the button-like category */
+    border-radius: 10px; /* More rounded corners */
+    display: inline-block;
+    margin-top: 20px;
+    color: white;
+    font-size: 1.4em; /* Larger category text */
+    text-transform: uppercase;
+    letter-spacing: 1px; /* More spacing for effect */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Subtle shadow for the category box */
+}
+
+/* Specific colors for each bucket (as provided earlier) */
+.good { background-color: #4CAF50; } /* Green */
+.satisfactory { background-color: #8BC34A; } /* Light Green */
+.moderate { background-color: #FFC107; color: #333; } /* Amber, dark text */
+.poor { background-color: #FF9800; } /* Orange */
+.very-poor { background-color: #F44336; } /* Red */
+.severe { background-color: #9C27B0; } /* Purple */
+.extreme { background-color: #673AB7; } /* Deep Purple */
+
+.back-link {
+    display: inline-block;
+    margin-top: 40px; /* More space above back link */
+    padding: 15px 30px; /* Larger button */
+    background-color: #6c757d; /* A neutral color for back link */
+    color: white;
+    text-decoration: none;
+    border-radius: 10px; /* More rounded corners */
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Shadow for the button */
+}
+
+.back-link:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+    .form-row-total {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .form-v9-content {
+        padding: 20px;
+    }
+    .form-detail h2 {
+        font-size: 1.8em;
+    }
+    .masthead .site-heading h1 {
+        font-size: 2.5rem;
+    }
+    .masthead .subheading {
+        font-size: 1rem;
+    }
+    .aqi-score {
+        font-size: 3.5em;
+    }
+    .aqi-category {
+        font-size: 1.2em;
+        padding: 10px 20px;
+    }
+    .result-box {
+        padding: 30px 20px;
+    }
+}

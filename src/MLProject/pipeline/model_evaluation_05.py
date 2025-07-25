@@ -9,10 +9,14 @@ class ModelEvaluationTrainingPipeline:
         pass
 
     def main(self):
-        config = ConfigurationManager()
-        model_evaluation_config = config.get_model_evaluation_config()
-        model_evaluation_config = ModelEvaluation(config=model_evaluation_config)
-        model_evaluation_config.log_into_mlflow()
+        try: 
+            config = ConfigurationManager()
+            model_evaluation_config = config.get_model_evaluation_config()
+            model_evaluation_obj = ModelEvaluation(config=model_evaluation_config) # CORRECTED
+            model_evaluation_obj.log_into_mlflow() # CORRECTED
+        except Exception as e:
+            logger.exception(f"Error in Model Evaluation Stage: {e}")
+            raise e
 
 
 if __name__=='__main__':
