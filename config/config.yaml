@@ -2,18 +2,21 @@ artifacts_root: artifacts
 
 data ingestion:
   root_dir: artifacts/data_ingestion
-  source_URL: https://github.com/tanayatipre/End-to-End-Machine-Learning-Project-with-MLFlow/raw/refs/heads/main/winequality.zip
+  source_URL: https://github.com/tanayatipre/End-to-End-Machine-Learning-Project-with-MLFlow/raw/refs/heads/main/city_day.zip
   local_data_file: artifacts/data_ingestion/data.zip
   unzip_dir: artifacts/data_ingestion
 
 data_validation:
   root_dir: artifacts/data_validation
-  unzip_data_dir: artifacts/data_ingestion/winequality-red.csv
+  csv_file_path: artifacts/data_ingestion/city_day.csv
   STATUS_FILE: artifacts/data_validation/status.txt
 
 data_transformation:
   root_dir: artifacts/data_transformation
-  data_path: artifacts/data_ingestion/winequality-red.csv
+  data_path: artifacts/data_ingestion/city_day.csv
+  preprocessor_name: preprocessor.joblib
+  train_data_path: artifacts/data_transformation/train.csv
+  test_data_path: artifacts/data_transformation/test.csv
   
 model_trainer:
   root_dir: artifacts/model_trainer

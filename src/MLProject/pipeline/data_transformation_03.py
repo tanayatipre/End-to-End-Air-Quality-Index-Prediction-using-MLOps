@@ -19,12 +19,12 @@ class DataTransformationTrainingPipeline:
                 config = ConfigurationManager()
                 data_transformation_config = config.get_data_transformation_config()
                 data_transformation = DataTransformation(config=data_transformation_config)
-                data_transformation.train_test_splitting()
-            
+                data_transformation.initiate_data_transformation()
             else:
-                raise Exception("You data schema is not valid")
+                raise Exception("You data schema is not valid. Data Transformation stage skipped.")
         
         except Exception as e:
+            logger.exception(f'Error in Data Transformation Stage: {e}')
             raise e
         
 

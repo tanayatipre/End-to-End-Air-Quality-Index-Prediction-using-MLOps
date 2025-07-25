@@ -1,11 +1,11 @@
 from MLProject.constants import *
 from MLProject.utils.common import read_yaml, create_directories
-from MLProject.entity.config_entity import DataIngestionConfig
-from MLProject.entity.config_entity import DataValidationConfig
-from MLProject.entity.config_entity import DataTransformationConfig
-from MLProject.entity.config_entity import ModelTrainerConfig
-from MLProject.entity.config_entity import ModelEvaluationConfig
-
+from MLProject.entity.config_entity import (DataIngestionConfig,
+                                            DataValidationConfig,
+                                            DataTransformationConfig,
+                                            ModelTrainerConfig,
+                                            ModelEvaluationConfig)
+from MLProject import logger
 
 class ConfigurationManager:
     def __init__(
@@ -18,6 +18,7 @@ class ConfigurationManager:
         self.params = read_yaml(params_filepath)
         self.schema = read_yaml(schema_filepath)
 
+        logger.info(f"Debug: Schema loaded into Configuration Manager:{self.schema.COLUMNS}")
         create_directories([self.config.artifacts_root])
 
     def get_data_ingestion_config(self) -> DataIngestionConfig:
@@ -43,7 +44,7 @@ class ConfigurationManager:
         data_validation_config = DataValidationConfig(
             root_dir=config.root_dir,
             STATUS_FILE=config.STATUS_FILE,
-            unzip_data_dir=config.unzip_data_dir,
+            csv_file_path=config.csv_file_path, # CORRECTED from unzip_data_dir
             all_schema=schema
         )
 
@@ -51,12 +52,23 @@ class ConfigurationManager:
     
     def get_data_transformation_config(self) -> DataTransformationConfig:
         config = self.config.data_transformation
+        params = self.params.data_transformation # Get data transformation parameters from params.yaml
+        schema = self.schema.TARGET_COLUMN # Get target column name from schema.yaml
 
         create_directories([config.root_dir])
 
         data_transformation_config = DataTransformationConfig(
             root_dir=config.root_dir,
-            data_path=config.data_path
+            data_path=config.data_path,
+            preprocessor_name=config.preprocessor_name, # NEW
+            train_data_path=config.train_data_path,     # NEW
+            test_data_path=config.test_data_path,       # NEW
+            target_column=schema.name,                  # NEW
+            numerical_cols=params.numerical_cols,       # NEW
+            categorical_cols=params.categorical_cols,   # NEW
+            columns_to_log_transform=params.columns_to_log_transform, # NEW
+            columns_to_drop_after_feature_eng=params.columns_to_drop_after_feature_eng, # NEW
+            test_size=params.test_size                  # NEW
         )
 
         return data_transformation_config
@@ -64,7 +76,7 @@ class ConfigurationManager:
 
     def get_model_trainer_config(self) -> ModelTrainerConfig:
         config = self.config.model_trainer
-        params = self.params.ElasticNet
+        params = self.params.model_trainer.CatBoostRegressor # CHANGED: Get CatBoost params
         schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
@@ -74,8 +86,7 @@ class ConfigurationManager:
             train_data_path = config.train_data_path,
             test_data_path = config.test_data_path,
             model_name = config.model_name,
-            alpha = params.alpha,
-            l1_ratio = params.l1_ratio,
+            params = params, # CHANGED: Pass the CatBoost params dict
             target_column = schema.name
         )
 
@@ -84,7 +95,7 @@ class ConfigurationManager:
 
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
         config = self.config.model_evaluation
-        params = self.params.ElasticNet
+        params = self.params.model_trainer.CatBoostRegressor # CHANGED: Get CatBoost params
         schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
@@ -93,7 +104,7 @@ class ConfigurationManager:
             root_dir=config.root_dir,
             test_data_path=config.test_data_path,
             model_path = config.model_path,
-            all_params=params,
+            all_params=params, 
             metric_file_name=config.metric_file_name,
             target_column=schema.name,
             mlflow_uri="https://dagshub.com/tanayatipre8/End-to-End-Machine-Learning-Project-with-MLFlow.mlflow"
@@ -101,4 +112,3 @@ class ConfigurationManager:
         )
 
         return model_evaluation_config
-    

@@ -1,3 +1,48 @@
-ElasticNet:
-  alpha: 0.9
-  l1_ratio: 0.8
+data_transformation:
+  test_size: 0.2 
+
+  numerical_cols: 
+    - PM2.5
+    - PM10
+    - 'NO'
+    - NO2
+    - NOx
+    - NH3
+    - CO
+    - SO2
+    - O3
+    - Benzene
+    - Toluene
+    - Year        # <--- ADD THESE
+    - Month       # <--- ADD THESE
+    - Day         # <--- ADD THESE
+    - DayOfWeek   # <--- ADD THESE
+    - IsWeekend   # <--- ADD THESE
+
+  categorical_cols:
+    - City
+  columns_to_log_transform:
+    - PM2.5
+    - PM10
+    - CO
+    - NH3
+    - 'NO'
+    - NO2
+    - NOx
+    - SO2
+    - O3
+    - Benzene
+    - Toluene
+    - AQI 
+  columns_to_drop_after_feature_eng: 
+    - Xylene 
+    - AQI_Bucket 
+    - Date # <--- Also ensure 'Date' is explicitly dropped from features if you're not passing it to ColumnTransformer
+model_trainer: # <--- THIS ENTIRE BLOCK IS MISSING FROM THE params.yaml YOU JUST SENT
+  CatBoostRegressor:
+    iterations: 1000 
+    learning_rate: 0.05 
+    depth: 8 
+    loss_function: RMSE 
+    random_state: 42 
+    verbose: 0 

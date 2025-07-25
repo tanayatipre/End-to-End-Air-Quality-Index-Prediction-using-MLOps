@@ -1,15 +1,19 @@
-pandas
-mlflow==2.2.2
-notebook
-numpy
-scikit-learn
-matplotlib
-python-box==6.0.2
-pyYAML
-tqdm
-ensure==1.0.2
-joblib
-types-PyYAML
-Flask
-Flask-Cors
--e .
+# Core Data Handling and ML
+pandas>=2.0.0
+numpy>=1.20.0
+scikit-learn>=1.2.0
+catboost>=1.0.0 
+joblib>=1.2.0 
+
+# Configuration and Utilities
+PyYAML>=6.0
+python-box>=7.0.0 
+ensure>=1.0.0 
+
+# MLflow Tracking
+mlflow>=2.0.0
+dagshub>=0.3.0 
+
+# Web Application
+Flask>=2.0.0
+

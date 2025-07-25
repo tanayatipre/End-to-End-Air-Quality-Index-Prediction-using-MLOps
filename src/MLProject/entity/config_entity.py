@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List, Dict, Any
 
 @dataclass(frozen=True)
 class DataIngestionConfig:
@@ -12,15 +13,22 @@ class DataIngestionConfig:
 class DataValidationConfig:
     root_dir: Path
     STATUS_FILE: str
-    unzip_data_dir: Path
+    csv_file_path: Path
     all_schema: dict
 
 @dataclass(frozen=True)
 class DataTransformationConfig:
     root_dir: Path
     data_path: Path
-
-
+    preprocessor_name: str
+    train_data_path: Path
+    test_data_path: Path
+    target_column: str
+    numerical_cols: List[str]
+    categorical_cols: List[str]
+    columns_to_log_transform: List[str]
+    columns_to_drop_after_feature_eng: List[str]
+    test_size: float
 
 @dataclass(frozen=True)
 class ModelTrainerConfig:
@@ -28,8 +36,7 @@ class ModelTrainerConfig:
     train_data_path: Path
     test_data_path: Path
     model_name: str
-    alpha: float
-    l1_ratio: float
+    params: Dict[str, Any]
     target_column: str
 
 @dataclass(frozen=True)
