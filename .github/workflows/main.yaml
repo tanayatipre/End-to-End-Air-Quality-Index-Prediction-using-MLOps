@@ -1,3 +1,4 @@
+# Assuming this is the content you referenced in your query
 name: CI/CD Pipeline
 
 on:
@@ -141,13 +142,14 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: latest
         run: |
+          # --- FIX FOR "docker buildx build requires 1 argument" ---
+          # Ensure the dot '.' (build context) is explicitly part of the docker build command line.
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             --build-arg MLFLOW_RUN_ID="${{ env.MLFLOW_RUN_ID_BUILD_ARG }}" \
             --build-arg GITHUB_REPOSITORY="${{ env.GITHUB_REPOSITORY_BUILD_ARG }}" \
             --build-arg MLFLOW_TRACKING_USERNAME="${{ env.DAGSHUB_USERNAME_BUILD_ARG }}" \
             --build-arg MLFLOW_TRACKING_PASSWORD="${{ env.DAGSHUB_TOKEN_BUILD_ARG }}" \
-            --build-arg MLFLOW_TRACKING_URI="${{ env.MLFLOW_TRACKING_URI }}" \ # Pass MLFLOW_TRACKING_URI as build-arg
-            .
+            --build-arg MLFLOW_TRACKING_URI="${{ env.MLFLOW_TRACKING_URI }}" .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
 
