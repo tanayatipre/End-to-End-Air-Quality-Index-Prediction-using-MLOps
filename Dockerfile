@@ -56,7 +56,7 @@ RUN mkdir -p ${ML_ARTIFACTS_DIR} # Create the directory inside the Docker image
 ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG}
 ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG}
 ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG}
-ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID} # This one was already correctly referenced.
+ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID} # Removed inline comment to fix syntax error
 
 # Run the Python script to download the model and preprocessor artifacts from MLflow.
 # This happens during the Docker build process.
