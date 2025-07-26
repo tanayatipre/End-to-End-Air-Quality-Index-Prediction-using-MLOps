@@ -1,59 +1,69 @@
-# Use a Python base image (ensure it matches your requirements.txt Python version)
+# Declare build arguments at the very top.
+# These will be passed from your GitHub Actions workflow.
+ARG MLFLOW_RUN_ID
+ARG MLFLOW_TRACKING_URI_ARG
+ARG MLFLOW_TRACKING_USERNAME_ARG
+ARG MLFLOW_TRACKING_PASSWORD_ARG
+
+# Base image - using a slightly newer slim Python image
 FROM python:3.9-slim-buster
 
-# Install necessary system packages
-# jq is needed for parsing JSON output from mlflow runs list in GHA to get run_id
-# unzip is needed for extracting artifacts if MLflow downloads them as zip
-# build-essential for some Python packages that might need compilation
-RUN apt update -y && apt install -y awscli unzip jq build-essential
+# Install essential system dependencies:
+# - jq: for parsing JSON (e.g., MLflow run IDs)
+# - unzip: for extracting data archives
+# - build-essential: provides tools needed to compile some Python packages (e.g., numpy, scipy, lxml)
+# - rm -rf /var/lib/apt/lists/*: Cleans up apt cache to reduce image size
+RUN apt update && \
+    apt install -y jq unzip build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set the working directory in the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy requirements.txt and install dependencies first (for Docker layer caching)
-COPY requirements.txt .
+# Copy and install Python dependencies first.
+# This optimizes Docker layering: if requirements.txt doesn't change, this layer is cached.
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your Python source code for the application and the download script
-COPY src/MLProject /app/src/MLProject
+# Copy application source code (src/MLProject) and core application files (app.py, config, params, schema).
+# Using './' explicitly for source ensures context is relative to the build root.
+COPY src/MLProject /app/src/MLProject/
 COPY app.py /app/
 COPY config /app/config/
 COPY params.yaml /app/
 COPY schema.yaml /app/
-COPY download_ml_artifacts.py /app/ # Copy the artifact download script
-COPY entrypoint.sh /app/ # Copy the entrypoint script
-RUN chmod +x /app/entrypoint.sh # Make entrypoint script executable
 
-# Define an environment variable for the downloaded model directory
-# This path is where download_ml_artifacts.py will save files, and predictions.py will load from
+# Copy the MLflow artifact download script and the entrypoint script.
+# These files are expected to be at the root of your repository.
+COPY ./download_ml_artifacts.py /app/
+COPY ./entrypoint.sh /app/
+
+# Make the entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
+# Define the target directory where MLflow artifacts (model, preprocessor) will be downloaded.
+# This uses an environment variable to ensure consistency across scripts.
 ENV ML_ARTIFACTS_DIR /app/artifacts/downloaded_model
+RUN mkdir -p ${ML_ARTIFACTS_DIR} # Create the directory inside the Docker image
 
-# Create the directory to store downloaded artifacts
-RUN mkdir -p ${ML_ARTIFACTS_DIR}
-
-# --- Build-time arguments for MLflow credentials and run ID ---
-# These are passed from the GitHub Actions workflow during 'docker build'
-ARG MLFLOW_TRACKING_USERNAME
-ARG MLFLOW_TRACKING_PASSWORD
-ARG MLFLOW_RUN_ID
-ARG GITHUB_REPOSITORY # To construct MLFLOW_TRACKING_URI at build-time if needed
-
-# --- Set MLflow environment variables for the download script to use ---
-# These need to be available during the RUN python download_ml_artifacts.py step
-ENV MLFLOW_TRACKING_URI=https://dagshub.com/${GITHUB_REPOSITORY}.mlflow
-ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME}
-ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD}
+# Set MLflow environment variables at build time.
+# These variables are consumed by 'download_ml_artifacts.py'.
+# WARNING: Passing secrets (like DAGSHUB_TOKEN) as build ARGs and then ENV vars
+# means they're present in the build layers. While necessary for build-time download,
+# be aware of this security implication.
+ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG}
+ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG}
+ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG}
 ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID}
 
-# Run the script to download the model and preprocessor during the image build
-# This makes the image self-contained with the model artifacts
-RUN python download_ml_artifacts.py
+# Run the Python script to download the model and preprocessor artifacts from MLflow.
+# This happens during the Docker build process.
+RUN python /app/download_ml_artifacts.py
 
-# Expose the port your Flask app runs on
-EXPOSE 8080
-
-# Set the entrypoint script to run when the container starts
+# Set the container's entrypoint script.
+# This script will be executed when the container starts and will then run CMD.
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Set the default command for the entrypoint script
+# Set the default command to execute when the container starts.
+# This command is passed to the ENTRYPOINT script.
 CMD ["python", "app.py"]
