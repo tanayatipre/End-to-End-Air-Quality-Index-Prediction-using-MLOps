@@ -11,7 +11,36 @@ export MLFLOW_TRACKING_PASSWORD="${MLFLOW_TRACKING_PASSWORD}" # From GitHub Acti
 
 # The MLFLOW_RUN_ID is passed as an environment variable to the container
 # from the 'docker run' command in the GitHub Actions workflow.
-# The ML_ARTIFACTS_DIR is also passed for the download script.
+# The ML_#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+echo "Starting entrypoint script..."
+
+# Set MLflow tracking URI and credentials for the container's environment.
+# These are passed from the 'docker run' command in the GitHub Actions workflow.
+export MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI}"
+export MLFLOW_TRACKING_USERNAME="${MLFLOW_TRACKING_USERNAME}"
+export MLFLOW_TRACKING_PASSWORD="${MLFLOW_TRACKING_PASSWORD}"
+export MLFLOW_RUN_ID="${MLFLOW_RUN_ID}" # Pass the run ID as an ENV var
+export ML_ARTIFACTS_DIR="/app/artifacts/downloaded_model" # Ensure this matches Dockerfile ENV and predictions.py
+
+echo "MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}"
+echo "MLFLOW_TRACKING_USERNAME: ${MLFLOW_TRACKING_USERNAME}" # For debugging, remove in production
+echo "MLFLOW_RUN_ID: ${MLFLOW_RUN_ID}"
+echo "ML_ARTIFACTS_DIR: ${ML_ARTIFACTS_DIR}"
+
+echo "Downloading MLflow artifacts..."
+# Run the Python script to download artifacts
+python /app/download_ml_artifacts.py
+
+echo "ML artifacts download finished. Starting Flask app."
+
+# Start your Flask application
+# "$@" expands to all arguments passed to the script (which will be "python app.py" from CMD)
+exec "$@"
+ARTIFACTS_DIR is also passed for the download script.
 
 echo "Attempting to download ML artifacts for Run ID: ${MLFLOW_RUN_ID}"
 echo "Artifacts will be saved to: ${ML_ARTIFACTS_DIR}"

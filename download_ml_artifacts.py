@@ -2,7 +2,8 @@ import os
 import mlflow
 import joblib
 import logging
-import sys # Import sys for sys.exit
+import sys
+from pathlib import Path
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -27,57 +28,57 @@ def download_artifacts(run_id: str, local_dir: str):
 
         # Define target local paths within the container's expected structure
         # These paths must match where PredictionPipeline expects to load them.
-        model_target_path = os.path.join(local_dir, "model.joblib")
-        preprocessor_target_path = os.path.join(local_dir, "preprocessor.joblib")
+        # MLflow logs 'model' and 'preprocessor' as subdirectories.
+        model_target_path = Path(local_dir) / "model" / "model.joblib"
+        preprocessor_target_path = Path(local_dir) / "preprocessor" / "preprocessor.joblib"
 
-        os.makedirs(os.path.dirname(model_target_path), exist_ok=True) # Ensure target dir for model
-        os.makedirs(os.path.dirname(preprocessor_target_path), exist_ok=True) # Ensure target dir for preprocessor
+        os.makedirs(model_target_path.parent, exist_ok=True) # Ensure target dir for model
+        os.makedirs(preprocessor_target_path.parent, exist_ok=True) # Ensure target dir for preprocessor
 
         # Download the model artifact
-        # mlflow.sklearn.log_model logs the model into its own 'model' artifact folder.
-        # We need to download the 'model' folder, then extract the actual model file.
-        model_artifact_subdir = "model" 
-        downloaded_model_folder_path = mlflow.artifacts.download_artifacts(
+        # mlflow.artifacts.download_artifacts will download the 'model' folder.
+        # We then need to find the actual model file inside it.
+        downloaded_model_folder = mlflow.artifacts.download_artifacts(
             run_id=run_id,
-            artifact_path=model_artifact_subdir,
-            dst_path=os.path.dirname(model_target_path), # Download to parent dir of model.joblib
-            tracking_uri=mlflow.get_tracking_uri() # Use the configured tracking URI
-        )
-        
-        # After downloading 'model' directory, the actual model file might be named something like 'model.pkl'
-        # or similar inside that 'model' directory. Find it and move it.
-        model_file_found = False
-        for root, _, files in os.walk(downloaded_model_folder_path):
-            for f in files:
-                if f.endswith((".pkl", ".joblib")): 
-                    os.rename(os.path.join(root, f), model_target_path)
-                    logger.info(f"Model downloaded and saved to: {model_target_path}")
-                    model_file_found = True
-                    break
-            if model_file_found:
-                break
-        
-        if not model_file_found:
-            logger.error("Could not find actual model file within the downloaded MLflow 'model' artifact.")
-            return False
-
-        # Clean up the temporary 'model' subdirectory if it was created
-        if os.path.exists(downloaded_model_folder_path) and os.path.isdir(downloaded_model_folder_path):
-            os.rmdir(downloaded_model_folder_path) # Should be empty after moving model file
-
-        # Download the preprocessor artifact
-        # We logged it as 'preprocessor/preprocessor.joblib'
-        preprocessor_artifact_path = "preprocessor/preprocessor.joblib" 
-        downloaded_preprocessor_file = mlflow.artifacts.download_artifacts(
-            run_id=run_id,
-            artifact_path=preprocessor_artifact_path,
-            dst_path=os.path.dirname(preprocessor_target_path), # Download to parent dir of preprocessor.joblib
+            artifact_path="model", # The artifact_path in MLflow UI
+            dst_path=str(model_target_path.parent.parent), # Download 'model' folder into the base downloaded_model dir
             tracking_uri=mlflow.get_tracking_uri()
         )
         
-        # If mlflow.artifacts.download_artifacts downloads directly to the file,
-        # we ensure it's in the final location with correct name.
-        if os.path.basename(downloaded_preprocessor_file) != "preprocessor.joblib":
+        # Verify the downloaded model path and move the actual model file
+        # The model file is typically inside 'model/' folder downloaded by MLflow
+        actual_model_file_in_download = Path(downloaded_model_folder) / "model.joblib" # Assuming it's named model.joblib inside
+        if not actual_model_file_in_download.exists():
+            # Fallback for older MLflow versions or different naming conventions
+            for root, _, files in os.walk(downloaded_model_folder):
+                for f in files:
+                    if f.endswith((".pkl", ".joblib")):
+                        actual_model_file_in_download = Path(root) / f
+                        break
+                if actual_model_file_in_download.exists():
+                    break
+        
+        if actual_model_file_in_download.exists():
+            os.rename(str(actual_model_file_in_download), str(model_target_path))
+            logger.info(f"Model downloaded and saved to: {model_target_path}")
+        else:
+            logger.error("Could not find actual model file within the downloaded MLflow 'model' artifact.")
+            return False
+        
+        # Clean up the temporary 'model' subdirectory if it was created
+        if Path(downloaded_model_folder).exists() and Path(downloaded_model_folder).is_dir():
+            os.rmdir(downloaded_model_folder) # Should be empty after moving model file
+
+        # Download the preprocessor artifact
+        downloaded_preprocessor_file = mlflow.artifacts.download_artifacts(
+            run_id=run_id,
+            artifact_path="preprocessor/preprocessor.joblib", # Full artifact path
+            dst_path=str(preprocessor_target_path.parent), # Download into the 'preprocessor' subdirectory
+            tracking_uri=mlflow.get_tracking_uri()
+        )
+        
+        # Ensure it's named correctly in the final location
+        if Path(downloaded_preprocessor_file).name != preprocessor_target_path.name:
              os.rename(downloaded_preprocessor_file, preprocessor_target_path)
         logger.info(f"Preprocessor downloaded and saved to: {preprocessor_target_path}")
 
@@ -88,14 +89,19 @@ def download_artifacts(run_id: str, local_dir: str):
         return False
 
 if __name__ == "__main__":
-    # The run_id should be passed as an environment variable
-    # The artifact_base_dir specifies where PredictionPipeline expects artifacts.
+    # The run_id and artifact_base_dir are passed as environment variables by entrypoint.sh
     run_id = os.environ.get("MLFLOW_RUN_ID") 
-    artifact_base_dir = os.environ.get("ML_ARTIFACTS_DIR", "artifacts/model_artifacts") # Default if not set
+    artifact_base_dir = os.environ.get("ML_ARTIFACTS_DIR") 
     
+    # MLflow tracking URI and credentials are also read from environment variables by MLflow client
+    # No need to explicitly read them here, just ensure they are set in the environment.
+
     if not run_id:
         logger.error("MLFLOW_RUN_ID environment variable not set. Cannot download artifacts.")
-        sys.exit(1) # Use sys.exit for clean exit in scripts
+        sys.exit(1) 
+    if not artifact_base_dir:
+        logger.error("ML_ARTIFACTS_DIR environment variable not set. Cannot download artifacts.")
+        sys.exit(1)
 
     logger.info(f"Starting artifact download for Run ID: {run_id} to directory: {artifact_base_dir}")
     if download_artifacts(run_id, artifact_base_dir):
