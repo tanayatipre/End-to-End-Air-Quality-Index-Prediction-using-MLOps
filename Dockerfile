@@ -25,15 +25,19 @@ COPY ./entrypoint.sh /app/
 
 RUN chmod +x /app/entrypoint.sh
 
+# Define the target directory where MLflow artifacts will be downloaded.
+# This ENV is clean and independent of ARGs.
 ENV ML_ARTIFACTS_DIR /app/artifacts/downloaded_model
 RUN mkdir -p ${ML_ARTIFACTS_DIR}
 
-ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG}
-ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG}
-ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG}
-ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID}
-
-RUN python /app/download_ml_artifacts.py
+# Pass ARG values directly as environment variables to the download script's RUN command.
+# This is the most robust way to ensure they are available for this specific step,
+# bypassing any potential parsing issues with direct ENV instructions using ARGs.
+RUN MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG} \
+    MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG} \
+    MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG} \
+    MLFLOW_RUN_ID=${MLFLOW_RUN_ID} \
+    python /app/download_ml_artifacts.py
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
