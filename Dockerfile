@@ -5,16 +5,18 @@ ARG MLFLOW_TRACKING_URI_ARG
 ARG MLFLOW_TRACKING_USERNAME_ARG
 ARG MLFLOW_TRACKING_PASSWORD_ARG
 
-# Base image - using a slightly newer slim Python image
-FROM python:3.9-slim-buster
+# Base image - using a more current slim Python image based on Debian Bookworm.
+# This resolves the apt update 404 error by using active repositories.
+FROM python:3.9-slim-bookworm
 
 # Install essential system dependencies:
 # - jq: for parsing JSON (e.g., MLflow run IDs)
 # - unzip: for extracting data archives
 # - build-essential: provides tools needed to compile some Python packages (e.g., numpy, scipy, lxml)
-# - rm -rf /var/lib/apt/lists/*: Cleans up apt cache to reduce image size
+# - curl: often useful for downloading things.
+# - rm -rf /var/lib/apt/lists/*: Cleans up apt cache to reduce image size.
 RUN apt update && \
-    apt install -y jq unzip build-essential && \
+    apt install -y jq unzip build-essential curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Set the working directory inside the container
@@ -46,15 +48,15 @@ RUN chmod +x /app/entrypoint.sh
 ENV ML_ARTIFACTS_DIR /app/artifacts/downloaded_model
 RUN mkdir -p ${ML_ARTIFACTS_DIR} # Create the directory inside the Docker image
 
-# Set MLflow environment variables at build time.
+# Set MLflow environment variables at build time using the ARG values.
 # These variables are consumed by 'download_ml_artifacts.py'.
-# WARNING: Passing secrets (like DAGSHUB_TOKEN) as build ARGs and then ENV vars
-# means they're present in the build layers. While necessary for build-time download,
-# be aware of this security implication.
+# The correct syntax is ${ARG_NAME} for referencing ARGs in ENV instructions.
+# NOTE: While necessary for build-time download, be aware that passing secrets (like DAGSHUB_TOKEN)
+# via build ARGs and then ENV vars means they are present in the build layers.
 ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG}
 ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG}
 ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG}
-ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID}
+ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID} # This one was already correctly referenced.
 
 # Run the Python script to download the model and preprocessor artifacts from MLflow.
 # This happens during the Docker build process.
