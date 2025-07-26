@@ -1,0 +1,125 @@
+[2025-07-26 12:34:56,540: INFO: main: >>>>>> stage Data Ingestion Stage started <<<<<<]
+[2025-07-26 12:34:56,560: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-26 12:34:56,594: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-26 12:34:56,617: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-26 12:34:56,618: INFO: configuration: Debug: Schema loaded into Configuration Manager:{'City': 'object', 'Date': 'object', 'PM2.5': 'float64', 'PM10': 'float64', 'NO': 'float64', 'NO2': 'float64', 'NOx': 'float64', 'NH3': 'float64', 'CO': 'float64', 'SO2': 'float64', 'O3': 'float64', 'Benzene': 'float64', 'Toluene': 'float64', 'Xylene': 'float64', 'AQI': 'float64', 'AQI_Bucket': 'object'}]
+[2025-07-26 12:34:56,621: INFO: common: created directory at artifacts]
+[2025-07-26 12:34:56,623: INFO: common: created directory at artifacts/data_ingestion]
+[2025-07-26 12:35:00,023: INFO: data_ingestion: artifacts/data_ingestion/data.zip downloaded! with following info: 
+Connection: close
+Content-Length: 752473
+Cache-Control: max-age=300
+Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+Content-Type: application/zip
+ETag: "65fb8631317f9b204b40b708621b0d20cf4c66c698cb4521e6f795e6600ac414"
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+X-GitHub-Request-Id: 9ECC:39287F:41CDB:DDAC6:68846F16
+Accept-Ranges: bytes
+Date: Sat, 26 Jul 2025 07:04:57 GMT
+Via: 1.1 varnish
+X-Served-By: cache-hyd1100028-HYD
+X-Cache: HIT
+X-Cache-Hits: 0
+X-Timer: S1753513498.607685,VS0,VE253
+Vary: Authorization,Accept-Encoding
+Access-Control-Allow-Origin: *
+Cross-Origin-Resource-Policy: cross-origin
+X-Fastly-Request-ID: e3633b98202578e4a6d3db253b459be013c5c37a
+Expires: Sat, 26 Jul 2025 07:09:57 GMT
+Source-Age: 0
+
+]
+[2025-07-26 12:35:00,098: INFO: main: >>>>>> stage Data Ingestion Stage completed <<<<<<
+
+x==========x]
+[2025-07-26 12:35:00,098: INFO: main: >>>>>> stage Data Validation Stage started <<<<<<]
+[2025-07-26 12:35:00,105: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-26 12:35:00,113: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-26 12:35:00,115: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-26 12:35:00,117: INFO: configuration: Debug: Schema loaded into Configuration Manager:{'City': 'object', 'Date': 'object', 'PM2.5': 'float64', 'PM10': 'float64', 'NO': 'float64', 'NO2': 'float64', 'NOx': 'float64', 'NH3': 'float64', 'CO': 'float64', 'SO2': 'float64', 'O3': 'float64', 'Benzene': 'float64', 'Toluene': 'float64', 'Xylene': 'float64', 'AQI': 'float64', 'AQI_Bucket': 'object'}]
+[2025-07-26 12:35:00,117: INFO: common: created directory at artifacts]
+[2025-07-26 12:35:00,119: INFO: common: created directory at artifacts/data_validation]
+[2025-07-26 12:35:00,208: INFO: data_validation: Data loaded from artifacts/data_ingestion/city_day.csv. Data columns: ['City', 'Date', 'PM2.5', 'PM10', 'NO', 'NO2', 'NOx', 'NH3', 'CO', 'SO2', 'O3', 'Benzene', 'Toluene', 'Xylene', 'AQI', 'AQI_Bucket']]
+[2025-07-26 12:35:00,208: INFO: data_validation: Set of columns from loaded data: {'O3', 'Benzene', 'CO', 'City', 'SO2', 'NO', 'NH3', 'NO2', 'AQI_Bucket', 'Xylene', 'AQI', 'Date', 'Toluene', 'NOx', 'PM2.5', 'PM10'}]
+[2025-07-26 12:35:00,208: INFO: data_validation: Raw self.config.all_schema type: <class 'box.config_box.ConfigBox'>]
+[2025-07-26 12:35:00,208: INFO: data_validation: Raw self.config.all_schema content: {'City': 'object', 'Date': 'object', 'PM2.5': 'float64', 'PM10': 'float64', 'NO': 'float64', 'NO2': 'float64', 'NOx': 'float64', 'NH3': 'float64', 'CO': 'float64', 'SO2': 'float64', 'O3': 'float64', 'Benzene': 'float64', 'Toluene': 'float64', 'Xylene': 'float64', 'AQI': 'float64', 'AQI_Bucket': 'object'}]
+[2025-07-26 12:35:00,208: INFO: data_validation: Set of columns from schema: {'O3', 'Benzene', 'CO', 'City', 'SO2', 'NO', 'NH3', 'NO2', 'AQI_Bucket', 'Xylene', 'AQI', 'Date', 'Toluene', 'NOx', 'PM2.5', 'PM10'}]
+[2025-07-26 12:35:00,210: INFO: data_validation: Data validation completed: Schema validation successful.]
+[2025-07-26 12:35:00,212: INFO: main: >>>>>> stage Data Validation Stage completed <<<<<<
+
+x==========x]
+[2025-07-26 12:35:00,213: INFO: main: >>>>>> stage Data Transformation Stage started <<<<<<]
+[2025-07-26 12:35:00,233: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-26 12:35:00,240: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-26 12:35:00,242: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-26 12:35:00,242: INFO: configuration: Debug: Schema loaded into Configuration Manager:{'City': 'object', 'Date': 'object', 'PM2.5': 'float64', 'PM10': 'float64', 'NO': 'float64', 'NO2': 'float64', 'NOx': 'float64', 'NH3': 'float64', 'CO': 'float64', 'SO2': 'float64', 'O3': 'float64', 'Benzene': 'float64', 'Toluene': 'float64', 'Xylene': 'float64', 'AQI': 'float64', 'AQI_Bucket': 'object'}]
+[2025-07-26 12:35:00,242: INFO: common: created directory at artifacts]
+[2025-07-26 12:35:00,245: INFO: common: created directory at artifacts/data_transformation]
+[2025-07-26 12:35:00,312: INFO: data_transformation: Original data loaded. Shape: (29531, 16)]
+[2025-07-26 12:35:00,327: INFO: data_transformation: Dropped 4681 rows with NaN in AQI or AQI_Bucket. New shape: (24850, 16)]
+[2025-07-26 12:35:00,363: INFO: data_transformation: Date features engineered.]
+[2025-07-26 12:35:00,370: INFO: data_transformation: Columns explicitly dropped from features (X) before CT: ['Xylene', 'Date']. New X shape: (24850, 17)]
+[2025-07-26 12:35:00,383: INFO: data_transformation: Data split into train ((19880, 17)) and test ((4970, 17)) sets.]
+[2025-07-26 12:35:00,386: INFO: data_transformation: CT Config - numerical_cols (from params): ['PM2.5', 'PM10', 'NO', 'NO2', 'NOx', 'NH3', 'CO', 'SO2', 'O3', 'Benzene', 'Toluene', 'Year', 'Month', 'Day', 'DayOfWeek', 'IsWeekend']]
+[2025-07-26 12:35:00,387: INFO: data_transformation: CT Config - columns_to_log_transform (from params): ['PM2.5', 'PM10', 'CO', 'NH3', 'NO', 'NO2', 'NOx', 'SO2', 'O3', 'Benzene', 'Toluene', 'AQI']]
+[2025-07-26 12:35:00,387: INFO: data_transformation: CT Config - num_cols_to_log (derived for CT): ['PM2.5', 'PM10', 'NO', 'NO2', 'NOx', 'NH3', 'CO', 'SO2', 'O3', 'Benzene', 'Toluene']]
+[2025-07-26 12:35:00,387: INFO: data_transformation: CT Config - num_cols_no_log (derived for CT): ['Year', 'Month', 'Day', 'DayOfWeek', 'IsWeekend']]
+[2025-07-26 12:35:00,387: INFO: data_transformation: CT Config - categorical_cols (from params): ['City']]
+[2025-07-26 12:35:00,387: INFO: data_transformation: X_train columns before ColumnTransformer fit_transform: ['City', 'PM2.5', 'PM10', 'NO', 'NO2', 'NOx', 'NH3', 'CO', 'SO2', 'O3', 'Benzene', 'Toluene', 'Year', 'Month', 'Day', 'DayOfWeek', 'IsWeekend']]
+[2025-07-26 12:35:00,484: INFO: data_transformation: ColumnTransformer fitted on X_train and transformed X_train, X_test.]
+[2025-07-26 12:35:00,486: INFO: data_transformation: Applying log1p transformation to target column 'AQI' in training and test sets.]
+[2025-07-26 12:35:00,490: WARNING: data_transformation: get_feature_names_out() not available. Transformed DataFrame column names might be generic.]
+[2025-07-26 12:35:01,736: INFO: data_transformation: Transformed train data saved to artifacts/data_transformation/train.csv. Shape: (19880, 43)]
+[2025-07-26 12:35:01,736: INFO: data_transformation: Transformed test data saved to artifacts/data_transformation/test.csv. Shape: (4970, 43)]
+[2025-07-26 12:35:01,740: INFO: data_transformation: Preprocessor object saved to artifacts/data_transformation/preprocessor.joblib]
+[2025-07-26 12:35:01,746: INFO: main: >>>>>> stage Data Transformation Stage completed <<<<<<
+
+x==========x]
+[2025-07-26 12:35:01,746: INFO: main: >>>>>> stage Model Trainer Stage started <<<<<<]
+[2025-07-26 12:35:01,752: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-26 12:35:01,763: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-26 12:35:01,767: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-26 12:35:01,768: INFO: configuration: Debug: Schema loaded into Configuration Manager:{'City': 'object', 'Date': 'object', 'PM2.5': 'float64', 'PM10': 'float64', 'NO': 'float64', 'NO2': 'float64', 'NOx': 'float64', 'NH3': 'float64', 'CO': 'float64', 'SO2': 'float64', 'O3': 'float64', 'Benzene': 'float64', 'Toluene': 'float64', 'Xylene': 'float64', 'AQI': 'float64', 'AQI_Bucket': 'object'}]
+[2025-07-26 12:35:01,770: INFO: common: created directory at artifacts]
+[2025-07-26 12:35:01,771: INFO: common: created directory at artifacts/model_trainer]
+[2025-07-26 12:35:02,629: INFO: model_trainer: Starting RandomizedSearchCV for CatBoostRegressor...]
+[2025-07-26 12:45:58,763: INFO: model_trainer: RandomizedSearchCV completed. Best parameters: {'random_strength': 1, 'learning_rate': 0.05, 'l2_leaf_reg': 1, 'iterations': 2000, 'early_stopping_rounds': 50, 'depth': 6, 'border_count': 64, 'bagging_temperature': 2.0}]
+[2025-07-26 12:45:58,764: INFO: model_trainer: Best CV r2 score: 0.9287]
+[2025-07-26 12:45:58,788: INFO: model_trainer: Logged best parameters and best CV score to MLflow.]
+[2025-07-26 12:45:58,805: INFO: model_trainer: Trained model saved to artifacts/model_trainer\model.joblib]
+[2025-07-26 12:46:11,842: INFO: model_trainer: Model logged to MLflow artifacts.]
+[2025-07-26 12:46:11,851: INFO: model_trainer: Model training stage completed successfully.]
+[2025-07-26 12:46:11,859: INFO: main: >>>>>> stage Model Trainer Stage completed <<<<<<
+
+x==========x]
+[2025-07-26 12:46:11,859: INFO: main: >>>>>> stage Model Evaluation Stage started <<<<<<]
+[2025-07-26 12:46:11,865: INFO: common: yaml file: config\config.yaml loaded successfully]
+[2025-07-26 12:46:11,874: INFO: common: yaml file: params.yaml loaded successfully]
+[2025-07-26 12:46:11,882: INFO: common: yaml file: schema.yaml loaded successfully]
+[2025-07-26 12:46:11,884: INFO: configuration: Debug: Schema loaded into Configuration Manager:{'City': 'object', 'Date': 'object', 'PM2.5': 'float64', 'PM10': 'float64', 'NO': 'float64', 'NO2': 'float64', 'NOx': 'float64', 'NH3': 'float64', 'CO': 'float64', 'SO2': 'float64', 'O3': 'float64', 'Benzene': 'float64', 'Toluene': 'float64', 'Xylene': 'float64', 'AQI': 'float64', 'AQI_Bucket': 'object'}]
+[2025-07-26 12:46:11,885: INFO: common: created directory at artifacts]
+[2025-07-26 12:46:11,885: INFO: common: created directory at artifacts/model_evaluation]
+[2025-07-26 12:46:12,116: INFO: model_evaluation: Raw model predictions (log-transformed) obtained.]
+[2025-07-26 12:46:12,117: INFO: model_evaluation: Inverse log1p transformation applied to both actuals and predictions for evaluation.]
+[2025-07-26 12:46:12,123: INFO: common: json file saved at: artifacts\model_evaluation\metrics.json]
+[2025-07-26 12:46:12,123: INFO: model_evaluation: Metrics saved locally to artifacts/model_evaluation/metrics.json]
+[2025-07-26 12:46:12,138: INFO: model_evaluation: Model parameters logged to MLflow.]
+[2025-07-26 12:46:12,151: INFO: model_evaluation: Metrics logged to MLflow.]
+[2025-07-26 12:46:16,227: INFO: model_evaluation: Model logged to MLflow.]
+[2025-07-26 12:46:16,233: INFO: main: >>>>>> stage Model Evaluation Stage completed <<<<<<
+
+x==========x]
+[2025-07-26 12:50:53,751: INFO: _internal: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.7:8080]
+[2025-07-26 12:50:53,751: INFO: _internal: [33mPress CTRL+C to quit[0m]
+[2025-07-26 12:51:14,966: INFO: _internal: 127.0.0.1 - - [26/Jul/2025 12:51:14] "GET / HTTP/1.1" 200 -]
+[2025-07-26 12:51:15,134: INFO: _internal: 127.0.0.1 - - [26/Jul/2025 12:51:15] "GET /static/css/style.css HTTP/1.1" 200 -]
+[2025-07-26 12:51:15,169: INFO: _internal: 127.0.0.1 - - [26/Jul/2025 12:51:15] "GET /static/js/scripts.js HTTP/1.1" 200 -]
+[2025-07-26 12:51:15,782: INFO: _internal: 127.0.0.1 - - [26/Jul/2025 12:51:15] "GET /static/assets/img/form-v9.jpg HTTP/1.1" 200 -]
+[2025-07-26 12:51:15,782: INFO: _internal: 127.0.0.1 - - [26/Jul/2025 12:51:15] "GET /static/assets/img/air_pollution.jpg HTTP/1.1" 200 -]
+[2025-07-26 12:51:16,360: INFO: _internal: 127.0.0.1 - - [26/Jul/2025 12:51:16] "GET /static/assets/favicon.ico HTTP/1.1" 200 -]

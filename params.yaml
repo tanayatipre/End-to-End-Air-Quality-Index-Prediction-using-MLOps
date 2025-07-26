@@ -38,11 +38,17 @@ data_transformation:
     - Xylene 
     - AQI_Bucket 
     - Date # <--- Also ensure 'Date' is explicitly dropped from features if you're not passing it to ColumnTransformer
-model_trainer: # <--- THIS ENTIRE BLOCK IS MISSING FROM THE params.yaml YOU JUST SENT
-  CatBoostRegressor:
+model_trainer:
+  CatBoostRegressor: # These will be the default parameters if tuning is disabled
     iterations: 1000 
     learning_rate: 0.05 
     depth: 8 
     loss_function: RMSE 
     random_state: 42 
     verbose: 0 
+  
+  tuning: # NEW SECTION for tuning parameters
+    perform_tuning: True # Set to False to skip tuning and use default CatBoostRegressor params
+    n_iter_search: 30    # Number of parameter settings that are sampled
+    cv_folds: 3          # Number of cross-validation folds
+    scoring_metric: r2   # Scoring metric for RandomizedSearchCV

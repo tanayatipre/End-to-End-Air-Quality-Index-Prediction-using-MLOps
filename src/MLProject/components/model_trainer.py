@@ -1,10 +1,12 @@
 import pandas as pd
 import os
-from MLProject import logger
-from sklearn.linear_model import ElasticNet
 import joblib
-from MLProject.entity.config_entity import ModelTrainerConfig
+import mlflow
+import mlflow.sklearn
 from catboost import CatBoostRegressor
+from sklearn.model_selection import RandomizedSearchCV 
+from MLProject import logger
+from MLProject.entity.config_entity import ModelTrainerConfig
 
 class ModelTrainer:
     def __init__(self,config: ModelTrainerConfig):
@@ -12,22 +14,78 @@ class ModelTrainer:
 
     def train(self):
         train_data = pd.read_csv(self.config.train_data_path)
-        test_data = pd.read_csv(self.config.test_data_path)
+        test_data = pd.read_csv(self.config.test_data_path) 
 
         train_x = train_data.drop([self.config.target_column], axis=1)
         test_x = test_data.drop([self.config.target_column], axis=1)
         train_y = train_data[self.config.target_column]
         test_y = test_data[self.config.target_column]
 
-        logger.info(f"Training CatBoostRegressor with parameters: {self.config.params}")
+        # Define parameter distribution for RandomizedSearchCV
+        param_dist = {
+            'iterations': [500, 1000, 1500, 2000],
+            'depth': [4, 6, 8, 10],
+            'learning_rate': [0.01, 0.05, 0.1, 0.2, 0.3],
+            'l2_leaf_reg': [1, 3, 5, 7, 9],
+            'bagging_temperature': [0.0, 0.5, 1.0, 1.5, 2.0],
+            'border_count': [32, 64, 128, 254],
+            'random_strength': [1, 10, 20, 50],
+            'early_stopping_rounds': [50, 100, 200]
+        }
 
-        model = CatBoostRegressor(**self.config.params)
-        model.fit(train_x, train_y)
+        # Ensure random_state for reproducibility
+        base_model = CatBoostRegressor(
+            random_seed=42,
+            verbose=0, # Suppress verbose output during training within CV
+            task_type="CPU",
+            allow_writing_files=False # Fix for CatBoostError about working dir
+        )
         
-        logger.info("CatBoostRegressor model training completed.")
+        # Start MLflow run for logging
+        with mlflow.start_run():
+            if self.config.perform_tuning:
+                logger.info("Starting RandomizedSearchCV for CatBoostRegressor...")
+                random_search = RandomizedSearchCV(
+                    estimator=base_model,
+                    param_distributions=param_dist,
+                    n_iter=self.config.n_iter_search, # Will read from params.yaml
+                    cv=self.config.cv_folds,           # Will read from params.yaml
+                    scoring=self.config.scoring_metric,
+                    n_jobs=2, # <--- CHANGE THIS: Use 2 CPU cores. Start here for stability.
+                              #     You can try 4 later if stable. Avoid -1.
+                    verbose=1,
+                    random_state=42,
+                    refit=True 
+                )
 
-        # Save the trained model
-        model_save_path = os.path.join(self.config.root_dir, self.config.model_name)
-        joblib.dump(model, model_save_path)
+                random_search.fit(train_x, train_y) 
 
-        logger.info(f"Trained CatBoostRegressor model saved to {model_save_path}")        
+                best_model = random_search.best_estimator_
+                best_params = random_search.best_params_
+                best_score = random_search.best_score_
+
+                logger.info(f"RandomizedSearchCV completed. Best parameters: {best_params}")
+                logger.info(f"Best CV {self.config.scoring_metric} score: {best_score:.4f}")
+
+                # Log the best parameters found by tuning
+                mlflow.log_params(best_params) 
+                mlflow.log_metric(f"best_cv_score_{self.config.scoring_metric}", best_score)
+                logger.info(f"Logged best parameters and best CV score to MLflow.")
+
+            else: 
+                logger.info("Tuning is disabled. Training CatBoostRegressor with default parameters...")
+                best_model = base_model.set_params(**self.config.params)
+                best_model.fit(train_x, train_y)
+                best_params = self.config.params
+
+                mlflow.log_params(best_params) 
+                logger.info(f"Logged default CatBoostRegressor parameters to MLflow: {best_params}")
+
+            model_save_path = os.path.join(self.config.root_dir, self.config.model_name)
+            joblib.dump(best_model, model_save_path)
+            logger.info(f"Trained model saved to {model_save_path}")
+
+            mlflow.sklearn.log_model(best_model, "model")
+            logger.info("Model logged to MLflow artifacts.")
+
+        logger.info("Model training stage completed successfully.")

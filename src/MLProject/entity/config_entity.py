@@ -36,8 +36,13 @@ class ModelTrainerConfig:
     train_data_path: Path
     test_data_path: Path
     model_name: str
-    params: Dict[str, Any]
+    params: Dict[str, Any] # Default/initial parameters for the model
     target_column: str
+    # NEW FIELDS for tuning
+    perform_tuning: bool
+    n_iter_search: int
+    cv_folds: int
+    scoring_metric: str
 
 @dataclass(frozen=True)
 class ModelEvaluationConfig:

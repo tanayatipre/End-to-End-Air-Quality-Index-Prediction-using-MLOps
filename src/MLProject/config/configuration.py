@@ -44,7 +44,7 @@ class ConfigurationManager:
         data_validation_config = DataValidationConfig(
             root_dir=config.root_dir,
             STATUS_FILE=config.STATUS_FILE,
-            csv_file_path=config.csv_file_path, # CORRECTED from unzip_data_dir
+            csv_file_path=config.csv_file_path, 
             all_schema=schema
         )
 
@@ -52,23 +52,23 @@ class ConfigurationManager:
     
     def get_data_transformation_config(self) -> DataTransformationConfig:
         config = self.config.data_transformation
-        params = self.params.data_transformation # Get data transformation parameters from params.yaml
-        schema = self.schema.TARGET_COLUMN # Get target column name from schema.yaml
+        params = self.params.data_transformation
+        schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
 
         data_transformation_config = DataTransformationConfig(
             root_dir=config.root_dir,
             data_path=config.data_path,
-            preprocessor_name=config.preprocessor_name, # NEW
-            train_data_path=config.train_data_path,     # NEW
-            test_data_path=config.test_data_path,       # NEW
-            target_column=schema.name,                  # NEW
-            numerical_cols=params.numerical_cols,       # NEW
-            categorical_cols=params.categorical_cols,   # NEW
-            columns_to_log_transform=params.columns_to_log_transform, # NEW
-            columns_to_drop_after_feature_eng=params.columns_to_drop_after_feature_eng, # NEW
-            test_size=params.test_size                  # NEW
+            preprocessor_name=config.preprocessor_name,
+            train_data_path=config.train_data_path,
+            test_data_path=config.test_data_path,
+            target_column=schema.name,
+            numerical_cols=params.numerical_cols,
+            categorical_cols=params.categorical_cols,
+            columns_to_log_transform=params.columns_to_log_transform,
+            columns_to_drop_after_feature_eng=params.columns_to_drop_after_feature_eng,
+            test_size=params.test_size
         )
 
         return data_transformation_config
@@ -76,7 +76,8 @@ class ConfigurationManager:
 
     def get_model_trainer_config(self) -> ModelTrainerConfig:
         config = self.config.model_trainer
-        params = self.params.model_trainer.CatBoostRegressor # CHANGED: Get CatBoost params
+        model_params = self.params.model_trainer.CatBoostRegressor # Default/initial model parameters
+        tuning_params = self.params.model_trainer.tuning # NEW: Access tuning parameters
         schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
@@ -86,8 +87,13 @@ class ConfigurationManager:
             train_data_path = config.train_data_path,
             test_data_path = config.test_data_path,
             model_name = config.model_name,
-            params = params, # CHANGED: Pass the CatBoost params dict
-            target_column = schema.name
+            params = model_params, # Pass default parameters
+            target_column = schema.name,
+            # NEW: Pass tuning parameters
+            perform_tuning = tuning_params.perform_tuning,
+            n_iter_search = tuning_params.n_iter_search,
+            cv_folds = tuning_params.cv_folds,
+            scoring_metric = tuning_params.scoring_metric
         )
 
         return model_trainer_config
@@ -95,7 +101,9 @@ class ConfigurationManager:
 
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
         config = self.config.model_evaluation
-        params = self.params.model_trainer.CatBoostRegressor # CHANGED: Get CatBoost params
+        # Pass the same default/initial parameters to all_params for consistency with MLflow logging.
+        # The ModelTrainer will log the *actual* best parameters if tuning occurs.
+        params = self.params.model_trainer.CatBoostRegressor 
         schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
@@ -108,7 +116,6 @@ class ConfigurationManager:
             metric_file_name=config.metric_file_name,
             target_column=schema.name,
             mlflow_uri="https://dagshub.com/tanayatipre8/End-to-End-Machine-Learning-Project-with-MLFlow.mlflow"
-
         )
 
         return model_evaluation_config
