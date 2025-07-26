@@ -72,13 +72,14 @@ body {
     z-index: 2;
 }
 
+/* --- TITLE SIZE REDUCTION --- */
 .masthead .site-heading h1 {
-    font-family: 'Lora', serif; /* Use Lora for main heading */
-    font-size: 3.8rem; /* Slightly smaller for better balance */
+    font-family: 'Lora', serif;
+    font-size: 2.8rem; /* REDUCED: From 3.8rem. Adjust as needed. */
     font-weight: 700;
     margin-bottom: 0.5rem;
     line-height: 1.2;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Text shadow for pop */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .masthead .subheading {
@@ -91,9 +92,10 @@ body {
     opacity: 0.95; /* Less transparent */
 }
 
+/* --- TITLE SIZE REDUCTION FOR LARGER SCREENS --- */
 @media (min-width: 768px) {
     .masthead .site-heading h1 {
-        font-size: 5rem;
+        font-size: 3.5rem; /* REDUCED: From 5rem. Adjust as needed. */
     }
 }
 
@@ -308,7 +310,7 @@ footer .fa-stack-1x {
 /* Specific colors for each bucket (as provided earlier) */
 .good { background-color: #4CAF50; } /* Green */
 .satisfactory { background-color: #8BC34A; } /* Light Green */
-.moderate { background-color: #FFC107; color: #333; } /* Amber, dark text */
+.moderate { background-color: #B0BEC5; color: #333; } /* --- CHANGED: A neutral blue-gray --- */
 .poor { background-color: #FF9800; } /* Orange */
 .very-poor { background-color: #F44336; } /* Red */
 .severe { background-color: #9C27B0; } /* Purple */
@@ -346,7 +348,7 @@ footer .fa-stack-1x {
         font-size: 1.8em;
     }
     .masthead .site-heading h1 {
-        font-size: 2.5rem;
+        font-size: 2.5rem; /* Already small enough, matches previous request */
     }
     .masthead .subheading {
         font-size: 1rem;
