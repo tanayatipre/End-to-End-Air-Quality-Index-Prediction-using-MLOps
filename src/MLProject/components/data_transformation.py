@@ -22,13 +22,6 @@ class DataTransformation:
         numerical_cols = self.config.numerical_cols
         categorical_cols = self.config.categorical_cols
         columns_to_log_transform = self.config.columns_to_log_transform
-
-        # Define preprocessing steps for numerical features
-        # Steps: Imputation -> Optional Log Transform -> Scaling
-        
-        # Create a custom transformer for log1p.
-        # It's important to apply log1p AFTER imputation, as log(0) is undefined.
-        # SimpleImputer should be first for numerical columns that will be log-transformed.
         
         # Identify numerical columns that need log transformation *within* the numerical pipeline
         numerical_cols_for_scaling = [col for col in numerical_cols if col not in columns_to_log_transform]
@@ -52,28 +45,6 @@ class DataTransformation:
             ('imputer', SimpleImputer(strategy='most_frequent')), # Impute categorical
             ('onehot', OneHotEncoder(handle_unknown='ignore'))
         ])
-
-        # Create a preprocessor using ColumnTransformer
-        # Note: You need to specify columns for EACH pipeline.
-        # This means numerical_cols list might need to be split here or handle dynamically.
-        # Let's simplify: all numerical columns go through numerical pipeline.
-        # If a column is in columns_to_log_transform, the FunctionTransformer handles it.
-        # This requires more advanced ColumnTransformer or a simpler pipeline structure.
-
-        # A more robust way: use named_transformers in ColumnTransformer for specific columns
-        # This might be tricky if some numerical columns are log-transformed and some are not.
-
-        # Simpler approach: if all numerical columns need *some* form of numerical processing
-        # (impute, scale), we define separate transformers for 'log_transformed_num' and 'plain_num'.
-        # However, the current setup implies all numerical_cols *might* be log_transformed based on the list.
-        # The params.yaml has numerical_cols list and columns_to_log_transform list.
-        # We need to ensure that the ColumnTransformer correctly applies log1p ONLY to the specified columns.
-
-        # Let's refine the approach:
-        # Create three types of transformers:
-        # 1. For numerical columns that need log transform + scaling
-        # 2. For numerical columns that need only scaling (and imputation)
-        # 3. For categorical columns (one-hot encoding + imputation)
 
         numerical_log_transform_pipeline = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='median')),
@@ -107,8 +78,7 @@ class DataTransformation:
                 ('num_std', numerical_standard_pipeline, num_cols_no_log),
                 ('cat', categorical_pipeline, categorical_cols)
             ],
-            remainder='passthrough' # If there are any other columns not explicitly handled, pass them through
-                                     # This should ideally not be needed if all relevant features are covered.
+            remainder='passthrough' 
         )
         
         return preprocessor
@@ -126,7 +96,7 @@ class DataTransformation:
             # Define target column
             target_column_name = self.config.target_column
             
-            # --- Feature Engineering for Date ---
+            # Feature Engineering for Date 
             if 'Date' in data.columns:
                 data['Date'] = pd.to_datetime(data['Date'], errors='coerce')
                 data['Year'] = data['Date'].dt.year
@@ -136,21 +106,12 @@ class DataTransformation:
                 data['IsWeekend'] = data['DayOfWeek'].isin([5, 6]).astype(int)
                 logger.info("Date features engineered.")
 
-            # Separate features and target
-            # X now contains all features, including engineered date features,
-            # but *before* dropping specified columns and log transformation (which will be done by CT).
-            # Note: Do not drop target_column_name or AQI_Bucket from X at this step,
-            # as they are not features the preprocessor needs to see.
-            # Only drop 'Xylene' and 'Date' if they are in columns_to_drop_after_feature_eng
             
             # Create X and y AFTER date engineering, but BEFORE any other drops or log transforms
             # that ColumnTransformer should handle.
             X = data.drop(columns=[target_column_name, 'AQI_Bucket'], errors='ignore') 
             y = data[target_column_name]
 
-            # Handle columns to drop from features *before* passing to ColumnTransformer
-            # This should be for columns that are NOT meant for the ColumnTransformer
-            # e.g., 'AQI_Bucket' (already implicitly handled by dropping target and then this),
             # 'Xylene' and the original 'Date' column.
             columns_to_drop_from_X = [col for col in self.config.columns_to_drop_after_feature_eng if col != 'AQI_Bucket']
             # Ensure AQI_Bucket is handled by the initial drop from 'data', not by this list for X
@@ -172,7 +133,7 @@ class DataTransformation:
 
             # Fit and transform X_train
             X_train_transformed = preprocessor_obj.fit_transform(X_train)
-            # Transform X_test (do not fit on test data)
+
             X_test_transformed = preprocessor_obj.transform(X_test)
             logger.info("ColumnTransformer fitted on X_train and transformed X_train, X_test.")
 
@@ -180,9 +141,7 @@ class DataTransformation:
                 logger.info(f"Applying log1p transformation to target column '{self.config.target_column}' in training and test sets.")
                 y_train = np.log1p(y_train)
                 y_test = np.log1p(y_test)
-                # You might want to log statistics of y_train/y_test before and after transformation
-                # logger.debug(f"y_train (raw) min/max: {y_train_original.min()}/{y_train_original.max()}")
-                # logger.debug(f"y_train (log1p) min/max: {y_train.min()}/{y_train.max()}")
+
             else:
                 logger.info(f"Target column '{self.config.target_column}' is NOT configured for log transformation.")
 

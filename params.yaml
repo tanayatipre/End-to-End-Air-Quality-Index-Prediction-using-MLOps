@@ -13,11 +13,11 @@ data_transformation:
     - O3
     - Benzene
     - Toluene
-    - Year        # <--- ADD THESE
-    - Month       # <--- ADD THESE
-    - Day         # <--- ADD THESE
-    - DayOfWeek   # <--- ADD THESE
-    - IsWeekend   # <--- ADD THESE
+    - Year        
+    - Month       
+    - Day        
+    - DayOfWeek   
+    - IsWeekend   
 
   categorical_cols:
     - City
@@ -37,9 +37,9 @@ data_transformation:
   columns_to_drop_after_feature_eng: 
     - Xylene 
     - AQI_Bucket 
-    - Date # <--- Also ensure 'Date' is explicitly dropped from features if you're not passing it to ColumnTransformer
+    - Date 
 model_trainer:
-  CatBoostRegressor: # These will be the default parameters if tuning is disabled
+  CatBoostRegressor: 
     iterations: 1000 
     learning_rate: 0.05 
     depth: 8 
@@ -47,8 +47,8 @@ model_trainer:
     random_state: 42 
     verbose: 0 
   
-  tuning: # NEW SECTION for tuning parameters
-    perform_tuning: True # Set to False to skip tuning and use default CatBoostRegressor params
-    n_iter_search: 30    # Number of parameter settings that are sampled
-    cv_folds: 3          # Number of cross-validation folds
-    scoring_metric: r2   # Scoring metric for RandomizedSearchCV
+  tuning: 
+    perform_tuning: True 
+    n_iter_search: 30    
+    cv_folds: 3          
+    scoring_metric: r2   

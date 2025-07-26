@@ -7,18 +7,17 @@ from MLProject import logger
 from datetime import datetime
 import logging
 
-# Set logger level to DEBUG for verbose output during debugging (can be INFO later for production)
 logger.setLevel(logging.DEBUG)
 
 
-app = Flask(__name__) # initializing a flask app
+app = Flask(__name__) 
 
-@app.route('/',methods=['GET'])  # route to display the home page
+@app.route('/',methods=['GET'])  
 def homePage():
     return render_template("index.html")
 
 
-@app.route('/train',methods=['GET'])  # route to train the pipeline
+@app.route('/train',methods=['GET'])  
 def training():
     os.system("python main.py")
     return "Training Successful!" 
@@ -59,10 +58,8 @@ def index():
 
 
 if __name__ == "__main__":
-	# app.run(host="0.0.0.0", port = 8080, debug=True)
 	app.run(host="0.0.0.0", port = 8080)
 
-# Helper function to get AQI bucket
 def get_aqi_bucket(aqi_score):
     if 0 <= aqi_score <= 50:
         return "Good"
@@ -76,10 +73,10 @@ def get_aqi_bucket(aqi_score):
         return "Very Poor"
     elif 401 <= aqi_score <= 500:
         return "Severe"
-    else: # greater than 500
+    else: 
         return "Extreme"
 
-# Define pollutant constraints (UPDATED with the provided table values)
+# Define pollutant constraints 
 POLLUTANT_CONSTRAINTS = {
     'PM2.5': {'min': 1.0, 'max': 300.0, 'unit': 'µg/m³'},
     'PM10': {'min': 3.0, 'max': 600.0, 'unit': 'µg/m³'},
@@ -87,7 +84,7 @@ POLLUTANT_CONSTRAINTS = {
     'NO2': {'min': 5.0, 'max': 700.0, 'unit': 'µg/m³'},
     'NOx': {'min': 10.0, 'max': 500.0, 'unit': 'µg/m³'},
     'NH3': {'min': 0.5, 'max': 1000.0, 'unit': 'µg/m³'},
-    'CO': {'min': 30.0, 'max': 5700.0, 'unit': 'µg/m³'}, # Note: Your table showed µg/m³ but CO is often in mg/m³. Assuming µg/m³ based on table.
+    'CO': {'min': 30.0, 'max': 5700.0, 'unit': 'µg/m³'}, 
     'SO2': {'min': 1.0, 'max': 6000.0, 'unit': 'µg/m³'},
     'O3': {'min': 10.0, 'max': 472.0, 'unit': 'µg/m³'},
     'Benzene': {'min': 0.06, 'max': 108.0, 'unit': 'µg/m³'},
@@ -95,7 +92,6 @@ POLLUTANT_CONSTRAINTS = {
     'Xylene': {'min': 3.0, 'max': 380.0, 'unit': 'µg/m³'},
 }
 
-# Define date constraints (assuming data is from 2015-2020)
 MIN_DATE = datetime(2015, 1, 1).date()
 MAX_DATE = datetime(2020, 12, 31).date()
 
@@ -103,8 +99,7 @@ MAX_DATE = datetime(2020, 12, 31).date()
 @app.route('/', methods=['GET'])
 def homePage():
     logger.info("Home page requested.")
-    # You might want to pass POLLUTANT_CONSTRAINTS to index.html for client-side display/validation
-    # return render_template("index.html", pollutant_constraints=POLLUTANT_CONSTRAINTS)
+
     return render_template("index.html")
 
 @app.route('/predict', methods=['POST'])
@@ -115,7 +110,7 @@ def predictRoute():
         for key in request.form:
             raw_data[key] = request.form[key]
 
-        # --- SERVER-SIDE VALIDATION ---
+        # SERVER-SIDE VALIDATION
         validation_errors = []
 
         # Validate Date
@@ -133,15 +128,14 @@ def predictRoute():
         # Validate Pollutants
         for pollutant, constraints in POLLUTANT_CONSTRAINTS.items():
             value_str = raw_data.get(pollutant)
-            if value_str: # Allow empty for NaN handling in pipeline
+            if value_str: 
                 try:
                     value = float(value_str)
                     if not (constraints['min'] <= value <= constraints['max']):
                         validation_errors.append(f"{pollutant} must be between {constraints['min']} and {constraints['max']} {constraints['unit']}.")
                 except ValueError:
                     validation_errors.append(f"Invalid value for {pollutant}. Please enter a number.")
-            # else: # Uncomment this if you want to strictly require all pollutant fields
-            #     validation_errors.append(f"{pollutant} is required.")
+
         
         if validation_errors:
             logger.warning(f"Validation errors received: {'; '.join(validation_errors)}")
@@ -150,8 +144,7 @@ def predictRoute():
                                    aqi_bucket="Input Error", 
                                    error_message="Please correct the following issues:<br>" + "<br>".join(validation_errors))
 
-        # If validation passes, proceed with data preparation for prediction
-        # Ensure all columns expected by the model are present, even if NaN
+
         data_for_pipeline = {
             'City': [raw_data.get('City')],
             'Date': [raw_data.get('Date')], # Pass string; PredictionPipeline will parse
@@ -174,7 +167,7 @@ def predictRoute():
         logger.info(f"Received prediction request with data: {input_df.to_dict(orient='records')}")
 
         obj = PredictionPipeline()
-        predicted_aqi = obj.predict(input_df)[0] # Assuming predict returns an array, get first element
+        predicted_aqi = obj.predict(input_df)[0] 
         
         # Round the predicted AQI for display
         predicted_aqi_rounded = round(predicted_aqi, 2)
@@ -184,7 +177,6 @@ def predictRoute():
         
         logger.info(f"Prediction successful. Predicted AQI: {predicted_aqi_rounded} (Bucket: {aqi_bucket})")
 
-        # Pass error_message as an empty string if no errors, so template can check `if error_message`
         return render_template('results.html', 
                                prediction=predicted_aqi_rounded, 
                                aqi_bucket=aqi_bucket, 
