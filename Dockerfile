@@ -1,4 +1,4 @@
-FROM FROM python:3.8-slim-bookworm
+FROM python:3.8-slim-bookworm
 
 RUN apt update -y && apt install awscli -y
 
