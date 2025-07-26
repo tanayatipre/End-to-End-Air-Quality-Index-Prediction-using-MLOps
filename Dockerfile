@@ -1,57 +1,59 @@
-# Start with a Python base image. Choose a version that matches your requirements.txt
-FROM python:3.9-slim-buster 
+# Use a Python base image (ensure it matches your requirements.txt Python version)
+FROM python:3.9-slim-buster
 
-# Set the working directory inside the container
+# Install necessary system packages
+# jq is needed for parsing JSON output from mlflow runs list in GHA to get run_id
+# unzip is needed for extracting artifacts if MLflow downloads them as zip
+# build-essential for some Python packages that might need compilation
+RUN apt update -y && apt install -y awscli unzip jq build-essential
+
+# Set the working directory in the container
 WORKDIR /app
 
-# Install OS-level dependencies required for awscli and Python packages
-# build-essential is for packages like numpy, pandas that might need compilation tools
-# git might be needed by some pip packages or mlflow/dagshub internals
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
-    awscli \
-    unzip \
-    build-essential \
-    git && \
-    rm -rf /var/lib/apt/lists/* # Clean up apt cache
-
-# Copy requirements.txt and install Python dependencies.
-# mlflow[s3] pulls boto3. dagshub also needs to be installed.
+# Copy requirements.txt and install dependencies first (for Docker layer caching)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    mlflow[s3] \ # Install mlflow with S3 support
-    dagshub # Install dagshub
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your application code and the artifact download script, and the entrypoint script
+# Copy your Python source code for the application and the download script
 COPY src/MLProject /app/src/MLProject
 COPY app.py /app/
 COPY config /app/config/
 COPY params.yaml /app/
 COPY schema.yaml /app/
-COPY templates /app/templates/
-COPY static /app/static/
-COPY download_ml_artifacts.py /app/ # Copy the new script
+COPY download_ml_artifacts.py /app/ # Copy the artifact download script
 COPY entrypoint.sh /app/ # Copy the entrypoint script
+RUN chmod +x /app/entrypoint.sh # Make entrypoint script executable
 
-# Create directories where the downloaded artifacts will be stored.
-# This path must match the `local_dir` in download_ml_artifacts.py and
-# where PredictionPipeline expects to load the models.
-# This is a base directory; actual model/preprocessor will be in subdirs.
-# Let's align this with PredictionPipeline's expected paths.
-# If PredictionPipeline expects 'artifacts/model_trainer/model.joblib' and 'artifacts/data_transformation/preprocessor.joblib',
-# then download_ml_artifacts.py should save directly to these paths.
-# To keep download_ml_artifacts.py simpler with its 'local_dir' parameter:
-# We'll create a single base directory for downloaded artifacts.
-RUN mkdir -p /app/artifacts/downloaded_model 
+# Define an environment variable for the downloaded model directory
+# This path is where download_ml_artifacts.py will save files, and predictions.py will load from
+ENV ML_ARTIFACTS_DIR /app/artifacts/downloaded_model
 
-# Make the entrypoint script executable
-RUN chmod +x /app/entrypoint.sh
+# Create the directory to store downloaded artifacts
+RUN mkdir -p ${ML_ARTIFACTS_DIR}
 
-# Set the entrypoint to the shell script that downloads artifacts and then starts Flask
-ENTRYPOINT ["/app/entrypoint.sh"]
+# --- Build-time arguments for MLflow credentials and run ID ---
+# These are passed from the GitHub Actions workflow during 'docker build'
+ARG MLFLOW_TRACKING_USERNAME
+ARG MLFLOW_TRACKING_PASSWORD
+ARG MLFLOW_RUN_ID
+ARG GITHUB_REPOSITORY # To construct MLFLOW_TRACKING_URI at build-time if needed
 
-# Expose the port your Flask app listens on
+# --- Set MLflow environment variables for the download script to use ---
+# These need to be available during the RUN python download_ml_artifacts.py step
+ENV MLFLOW_TRACKING_URI=https://dagshub.com/${GITHUB_REPOSITORY}.mlflow
+ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME}
+ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD}
+ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID}
+
+# Run the script to download the model and preprocessor during the image build
+# This makes the image self-contained with the model artifacts
+RUN python download_ml_artifacts.py
+
+# Expose the port your Flask app runs on
 EXPOSE 8080
 
-# CMD is typically the default arguments to the ENTRYPOINT (ignored if ENTRYPOINT is set)
-# CMD ["python", "app.py"] # This will be called by entrypoint.sh
+# Set the entrypoint script to run when the container starts
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Set the default command for the entrypoint script
+CMD ["python", "app.py"]

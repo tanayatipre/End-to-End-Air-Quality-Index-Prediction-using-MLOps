@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Tanaya/Downloads/Projects/End-to-End-Machine-Learning-Project-with-MLFlow/mlruns/0/364e34bce02e459e955e51902ac503c5/artifacts
+end_time: 1753540388308
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 364e34bce02e459e955e51902ac503c5
+run_name: mercurial-hen-178
+run_uuid: 364e34bce02e459e955e51902ac503c5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1753540384476
+status: 3
+tags: []
+user_id: Tanaya

@@ -7,6 +7,7 @@ from catboost import CatBoostRegressor
 from sklearn.model_selection import RandomizedSearchCV 
 from MLProject import logger
 from MLProject.entity.config_entity import ModelTrainerConfig
+from pathlib import Path # Import Path
 
 class ModelTrainer:
     def __init__(self,config: ModelTrainerConfig):
@@ -42,8 +43,7 @@ class ModelTrainer:
         )
         
         # Start MLflow run for logging
-        # Capture the run object to get run_id later
-        with mlflow.start_run() as run: # Changed to 'as run'
+        with mlflow.start_run() as run:
             run_id = run.info.run_id # Get the current run ID
             logger.info(f"MLflow Run ID: {run_id}")
 
@@ -84,20 +84,21 @@ class ModelTrainer:
                 logger.info(f"Logged default CatBoostRegressor parameters to MLflow: {best_params}")
 
             # Save the model and preprocessor locally first (for joblib load in pipeline/local testing)
-            model_save_path = os.path.join(self.config.root_dir, self.config.model_name)
+            model_save_path = self.config.root_dir / self.config.model_name # Use Path object for joining
             joblib.dump(best_model, model_save_path)
             logger.info(f"Trained model saved locally to {model_save_path}")
 
             # NEW: Load the preprocessor that was saved by DataTransformation stage
-            preprocessor_path = os.path.join(self.config.root_dir.parent.parent, "data_transformation", "preprocessor.joblib")
+            # self.config.root_dir is artifacts/model_trainer
+            # Preprocessor is in artifacts/data_transformation
+            # So, go up one level to 'artifacts', then down to 'data_transformation'
+            preprocessor_path = self.config.root_dir.parent / "data_transformation" / "preprocessor.joblib"
             preprocessor_obj = joblib.load(preprocessor_path) # Load the preprocessor
 
             # Log the model and preprocessor as MLflow artifacts
-            # mlflow.sklearn.log_model logs the model into its own 'model' artifact folder
-            mlflow.sklearn.log_model(best_model, "model")
+            mlflow.sklearn.log_model(best_model, "model") # Logs the model into its own 'model' artifact folder
             logger.info("Trained model logged as MLflow artifact (under 'model' path).")
 
-            # Log the preprocessor as a separate artifact
             mlflow.log_artifact(local_path=preprocessor_path, artifact_path="preprocessor") # Log the preprocessor.joblib
             logger.info("Preprocessor logged as MLflow artifact (under 'preprocessor' path).")
 

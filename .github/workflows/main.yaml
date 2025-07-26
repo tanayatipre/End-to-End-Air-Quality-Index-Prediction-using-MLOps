@@ -13,7 +13,7 @@ on:
         description: 'Run full ML pipeline training and deploy new model'
         required: true 
         type: boolean
-        default: true 
+        default: false
 
 permissions:
   id-token: write 
@@ -25,8 +25,22 @@ env:
   MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }} 
 
 jobs:
+  # --- NEW DIAGNOSTIC JOB (Optional, keep for initial testing, remove later) ---
+  diagnose_trigger:
+    name: Diagnose Workflow Trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Print Trigger Info
+        run: |
+          echo "GitHub Event Name: ${{ github.event_name }}"
+          echo "Full Train Input: ${{ github.event.inputs.full_train }}"
+
+  # --- Phase 1: Fast Continuous Integration (CI) ---
   continuous-integration:
     name: Lint, Test, and Cache Dependencies
+    needs: diagnose_trigger # Depends on diagnostic job for initial testing
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -49,19 +63,19 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Lint code
-        run: echo "TODO: Implement linting tools like pylint or flake8 here." 
+        run: echo "Linting repository (e.g., pylint, flake8)" 
 
       - name: Run unit tests
-        run: echo "TODO: Implement your Python unit tests (e.g., using pytest) here." 
+        run: echo "Running unit tests (e.g., pytest)" 
 
 
+  # --- Phase 2: Full ML Model Training (Conditional) ---
   full-model-training:
     name: Full ML Pipeline Training
     runs-on: ubuntu-latest
     needs: continuous-integration 
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.full_train == true
 
-    # This 'outputs' block must be at the same indentation level as 'name', 'runs-on', 'needs', 'if', and 'steps'.
     outputs: 
       run_id: ${{ steps.run_pipeline.outputs.run_id }} 
 
@@ -82,26 +96,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python-
             
-      - name: Install dependencies (including mlflow[s3] and dagshub for tracking)
-        run: pip install -r requirements.txt mlflow[s3] dagshub
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
       - name: Run Full ML Pipeline Training
         id: run_pipeline 
         run: |
-          echo "Running main.py to train the model..."
           python main.py
-          
+          # Capture the latest MLflow Run ID from the current run
           LATEST_RUN_ID=$(mlflow runs list --max-results 1 --output-as json | jq -r '.[0].run_id')
           echo "Captured latest MLflow Run ID: $LATEST_RUN_ID"
-          echo "run_id=$LATEST_RUN_ID" >> $GITHUB_OUTPUT 
+          echo "run_id=$LATEST_RUN_ID" >> "$GITHUB_OUTPUT" # Set job output for run_id
 
+  # --- Phase 3: Docker Image Build and Push ---
   build-and-push-ecr-image:
     name: Build & Push Docker Image
-    needs: full-model-training 
+    needs: full-model-training # Depends on successful model training for run_id
     runs-on: ubuntu-latest
-    env: 
-      MLFLOW_RUN_ID: ${{ needs.full-model-training.outputs.run_id }}
-      GITHUB_REPOSITORY: ${{ github.repository }} 
+    
+    # Pass MLflow Run ID and DagsHub credentials as build arguments
+    # The GITHUB_REPOSITORY is used to construct the full MLflow Tracking URI in Dockerfile
+    # These are passed to the Dockerfile to enable artifact download during build.
+    env:
+      MLFLOW_RUN_ID_BUILD_ARG: ${{ needs.full-model-training.outputs.run_id }}
+      DAGSHUB_USERNAME_BUILD_ARG: ${{ secrets.DAGSHUB_USERNAME }}
+      DAGSHUB_TOKEN_BUILD_ARG: ${{ secrets.DAGSHUB_TOKEN }}
+      GITHUB_REPOSITORY_BUILD_ARG: ${{ github.repository }}
 
     steps:
       - name: Checkout Code
@@ -125,22 +145,26 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
-        env: 
+        env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: latest
         run: |
+          # Build a docker container, passing MLflow credentials and run_id as build-args
+          # The Dockerfile uses these ARGs to set ENV vars and run download_ml_artifacts.py
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            --build-arg MLFLOW_RUN_ID=$MLFLOW_RUN_ID \
-            --build-arg MLFLOW_TRACKING_URI=${{ env.MLFLOW_TRACKING_URI }} \
-            --build-arg MLFLOW_TRACKING_USERNAME=${{ env.MLFLOW_TRACKING_USERNAME }} \
-            --build-arg MLFLOW_TRACKING_PASSWORD=${{ env.MLFLOW_TRACKING_PASSWORD }} \
+            --build-arg MLFLOW_RUN_ID="${{ env.MLFLOW_RUN_ID_BUILD_ARG }}" \
+            --build-arg GITHUB_REPOSITORY="${{ env.GITHUB_REPOSITORY_BUILD_ARG }}" \
+            --build-arg MLFLOW_TRACKING_USERNAME="${{ env.DAGSHUB_USERNAME_BUILD_ARG }}" \
+            --build-arg MLFLOW_TRACKING_PASSWORD="${{ env.DAGSHUB_TOKEN_BUILD_ARG }}" \
             .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
 
+  # --- Phase 4: Continuous Deployment ---
   continuous-deployment:
     name: Deploy to Self-Hosted Runner
-    needs: build-and-push-ecr-image 
+    needs: build-and-push-ecr-image # Depends on successful image build
     runs-on: self-hosted 
     steps:
       - name: Configure AWS credentials (if needed for pulling from ECR on self-hosted)
@@ -165,14 +189,15 @@ jobs:
 
       - name: Run New Docker Image to serve users
         run: |
+          # Pass MLflow environment variables to the running container
+          # The ML_ARTIFACTS_DIR is already set in the Dockerfile, so no need to pass here
           docker run -d -p 8080:8080 --name=mlproj \
             -e 'MLFLOW_TRACKING_URI=${{ env.MLFLOW_TRACKING_URI }}' \
             -e 'MLFLOW_TRACKING_USERNAME=${{ env.MLFLOW_TRACKING_USERNAME }}' \
             -e 'MLFLOW_TRACKING_PASSWORD=${{ env.MLFLOW_TRACKING_PASSWORD }}' \
             -e 'MLFLOW_RUN_ID=${{ needs.full-model-training.outputs.run_id }}' \
-            -e 'ML_ARTIFACTS_DIR=/app/artifacts/downloaded_model' \ 
             ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
       - name: Clean previous images and containers (optional, careful with this)
         run: |
-          docker system prune -f || true
+          docker system prune -f || true # Use || true to prevent job failure if prune fails

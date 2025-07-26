@@ -6,6 +6,7 @@ from MLProject.entity.config_entity import (DataIngestionConfig,
                                             ModelTrainerConfig,
                                             ModelEvaluationConfig)
 from MLProject import logger
+from pathlib import Path # Import Path
 
 class ConfigurationManager:
     def __init__(
@@ -27,10 +28,10 @@ class ConfigurationManager:
         create_directories([config.root_dir])
 
         data_ingestion_config = DataIngestionConfig(
-            root_dir=config.root_dir,
+            root_dir=Path(config.root_dir), # Cast to Path
             source_URL=config.source_URL,
-            local_data_file=config.local_data_file,
-            unzip_dir=config.unzip_dir
+            local_data_file=Path(config.local_data_file), # Cast to Path
+            unzip_dir=Path(config.unzip_dir) # Cast to Path
         )
 
         return data_ingestion_config
@@ -42,9 +43,9 @@ class ConfigurationManager:
         create_directories([config.root_dir])
 
         data_validation_config = DataValidationConfig(
-            root_dir=config.root_dir,
-            STATUS_FILE=config.STATUS_FILE,
-            csv_file_path=config.csv_file_path, 
+            root_dir=Path(config.root_dir), # Cast to Path
+            STATUS_FILE=Path(config.STATUS_FILE), # Cast to Path
+            csv_file_path=Path(config.csv_file_path), # Cast to Path
             all_schema=schema
         )
 
@@ -58,11 +59,11 @@ class ConfigurationManager:
         create_directories([config.root_dir])
 
         data_transformation_config = DataTransformationConfig(
-            root_dir=config.root_dir,
-            data_path=config.data_path,
+            root_dir=Path(config.root_dir), # Cast to Path
+            data_path=Path(config.data_path), # Cast to Path
             preprocessor_name=config.preprocessor_name,
-            train_data_path=config.train_data_path,
-            test_data_path=config.test_data_path,
+            train_data_path=Path(config.train_data_path), # Cast to Path
+            test_data_path=Path(config.test_data_path), # Cast to Path
             target_column=schema.name,
             numerical_cols=params.numerical_cols,
             categorical_cols=params.categorical_cols,
@@ -76,20 +77,19 @@ class ConfigurationManager:
 
     def get_model_trainer_config(self) -> ModelTrainerConfig:
         config = self.config.model_trainer
-        model_params = self.params.model_trainer.CatBoostRegressor # Default/initial model parameters
-        tuning_params = self.params.model_trainer.tuning # NEW: Access tuning parameters
+        model_params = self.params.model_trainer.CatBoostRegressor
+        tuning_params = self.params.model_trainer.tuning
         schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
 
         model_trainer_config = ModelTrainerConfig(
-            root_dir = config.root_dir,
-            train_data_path = config.train_data_path,
-            test_data_path = config.test_data_path,
+            root_dir = Path(config.root_dir), # Cast to Path
+            train_data_path = Path(config.train_data_path), # Cast to Path
+            test_data_path = Path(config.test_data_path), # Cast to Path
             model_name = config.model_name,
-            params = model_params, # Pass default parameters
+            params = model_params,
             target_column = schema.name,
-            # NEW: Pass tuning parameters
             perform_tuning = tuning_params.perform_tuning,
             n_iter_search = tuning_params.n_iter_search,
             cv_folds = tuning_params.cv_folds,
@@ -101,19 +101,17 @@ class ConfigurationManager:
 
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
         config = self.config.model_evaluation
-        # Pass the same default/initial parameters to all_params for consistency with MLflow logging.
-        # The ModelTrainer will log the *actual* best parameters if tuning occurs.
         params = self.params.model_trainer.CatBoostRegressor 
         schema = self.schema.TARGET_COLUMN
 
         create_directories([config.root_dir])
 
         model_evaluation_config = ModelEvaluationConfig(
-            root_dir=config.root_dir,
-            test_data_path=config.test_data_path,
-            model_path = config.model_path,
+            root_dir=Path(config.root_dir), # Cast to Path
+            test_data_path=Path(config.test_data_path), # Cast to Path
+            model_path = Path(config.model_path), # Cast to Path
             all_params=params, 
-            metric_file_name=config.metric_file_name,
+            metric_file_name=Path(config.metric_file_name), # Cast to Path
             target_column=schema.name,
             mlflow_uri="https://dagshub.com/tanayatipre8/End-to-End-Machine-Learning-Project-with-MLFlow.mlflow"
         )
