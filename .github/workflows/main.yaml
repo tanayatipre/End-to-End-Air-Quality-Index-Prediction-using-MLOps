@@ -61,8 +61,8 @@ jobs:
     needs: continuous-integration 
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.full_train == true
 
+    # This 'outputs' block must be at the same indentation level as 'name', 'runs-on', 'needs', 'if', and 'steps'.
     outputs: 
-      # Correct syntax for job outputs. The value is a string directly from a step's output.
       run_id: ${{ steps.run_pipeline.outputs.run_id }} 
 
     steps:
@@ -93,9 +93,7 @@ jobs:
           
           LATEST_RUN_ID=$(mlflow runs list --max-results 1 --output-as json | jq -r '.[0].run_id')
           echo "Captured latest MLflow Run ID: $LATEST_RUN_ID"
-          # Set the step output directly for GITHUB_OUTPUT
-          # The format is 'name=value'
-          echo "run_id=$LATEST_RUN_ID" >> $GITHUB_OUTPUT # Corrected: use $GITHUB_OUTPUT directly
+          echo "run_id=$LATEST_RUN_ID" >> $GITHUB_OUTPUT 
 
   build-and-push-ecr-image:
     name: Build & Push Docker Image
@@ -139,9 +137,6 @@ jobs:
             --build-arg MLFLOW_TRACKING_PASSWORD=${{ env.MLFLOW_TRACKING_PASSWORD }} \
             .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # The line below is for older GHA versions. Newer versions use the $GITHUB_OUTPUT approach above.
-          # If still getting "set-output" deprecation warnings, this is fine for now.
-          # echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
 
   continuous-deployment:
     name: Deploy to Self-Hosted Runner
