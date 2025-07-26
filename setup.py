@@ -1,11 +1,16 @@
 import setuptools
-with open("README.md", "r", encoding="utf-8") as f:
-    long_description = f.read()
+import os # Import the os module
 
+# Get the directory where setup.py is located
+here = os.path.abspath(os.path.dirname(__file__))
+
+# Construct the full path to README.md relative to setup.py
+with open(os.path.join(here, "README.md"), "r", encoding="utf-8") as f:
+    long_description = f.read()
 
 __version__="0.0.0"
 
-REPO_NAME  = "End-to-End-Machine-Learning-Project-with-MLFlow"
+REPO_NAME = "End-to-End-Machine-Learning-Project-with-MLFlow"
 AUTHOR_USER_NAME = "tanayatipre8"
 SRC_REPO = "MLProject"
 AUTHOR_EMAIL = "tanayatipre8@gmail.com"
@@ -23,4 +28,4 @@ setuptools.setup(
     },
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src")
-    )
+)
