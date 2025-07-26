@@ -1,6 +1,3 @@
-Here’s your improved README in **plaintext format**, with better formatting and no change in content. The title has been toned down to match the rest of the headings for consistency.
-
----
 
 ## End-to-End Air Quality Index Prediction using MLOps
 
