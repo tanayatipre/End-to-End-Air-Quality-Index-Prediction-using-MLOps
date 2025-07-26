@@ -1,4 +1,4 @@
-name: workflow
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,29 +6,109 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - 'docs/**' # Ignore documentation changes if any
+  # Manual trigger for full retraining/deployment (if desired)
+  workflow_dispatch:
+    inputs:
+      full_train:
+        description: 'Run full ML pipeline training and deploy new model'
+        required: true # Set to true to require explicit confirmation
+        type: boolean
+        default: false
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write # Needed for aws-actions/configure-aws-credentials and OIDC with AWS
+  contents: read  # Needed for actions/checkout and reading repository content
+
+env: # Global environment variables for the workflow, automatically picked up by MLflow Python client
+  MLFLOW_TRACKING_URI: https://dagshub.com/${{ github.repository }}.mlflow 
+  MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }} # Your DagsHub username
+  MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }} # Your DagsHub token secret (recommended over DAGSHUB_PASSWORD)
 
 jobs:
-  integration:
-    name: Continuous Integration
+  # --- Phase 1: Fast Continuous Integration (CI) ---
+  continuous-integration:
+    name: Lint, Test, and Cache Dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9' # Or your specific Python version
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Lint code
-        run: echo "Linting repository"
+        run: echo "Linting repository (e.g., pylint, flake8)" 
 
       - name: Run unit tests
-        run: echo "Running unit tests"
+        run: echo "Running unit tests (e.g., pytest)" 
 
+
+  # --- Phase 2: Full ML Model Training (Conditional) ---
+  full-model-training:
+    name: Full ML Pipeline Training
+    runs-on: ubuntu-latest # Could be 'self-hosted' if you have a powerful one dedicated to training
+    needs: continuous-integration 
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.full_train == true
+
+    outputs: # Define outputs to pass data to subsequent jobs
+      run_id: ${{ steps.run_pipeline.outputs.run_id }} # Capture run_id from main.py
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
+            
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Run the full ML Pipeline and capture the MLflow Run ID
+      - name: Run Full ML Pipeline Training
+        id: run_pipeline # Give this step an ID to access its outputs
+        run: |
+          # Use MLflow's Python API to ensure the run starts and we can capture its ID
+          python main.py
+          
+          # MLflow creates a run ID. We need to fetch the latest run ID from the local mlruns folder.
+          # This assumes the current workflow run is the only thing writing to mlruns locally.
+          LATEST_RUN_ID=$(mlflow runs list --max-results 1 --output-as json | jq -r '.[0].run_id')
+          echo "Captured latest MLflow Run ID: $LATEST_RUN_ID"
+          echo "run_id=$LATEST_RUN_ID" >> "$GITHUB_OUTPUT" # Set output for the job
+
+  # --- Phase 3: Build and Push Docker Image (Leveraging MLflow Artifacts) ---
   build-and-push-ecr-image:
-    name: Continuous Delivery
-    needs: integration
+    name: Build & Push Docker Image
+    needs: full-model-training # Depends on the full training completion
     runs-on: ubuntu-latest
+    env: # Pass MLflow Run ID, DagsHub credentials, and repo name as environment variables to the Docker build context
+      MLFLOW_RUN_ID: ${{ needs.full-model-training.outputs.run_id }}
+      GITHUB_REPOSITORY: ${{ github.repository }} # e.g., tanayatipre/End-to-End-Machine-Learning-Project-with-MLFlow
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -36,7 +116,8 @@ jobs:
       - name: Install Utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq unzip
+          sudo apt-get install -y jq unzip # jq for parsing JSON, unzip for general utility
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -55,44 +136,55 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: latest
         run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          # Build a docker container, passing MLflow Run ID and DagsHub credentials as build arguments
+          # These build args are then used by entrypoint.sh or download_ml_artifacts.py
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --build-arg MLFLOW_RUN_ID=$MLFLOW_RUN_ID \
+            --build-arg GITHUB_REPOSITORY=$GITHUB_REPOSITORY \
+            --build-arg DAGSHUB_USERNAME=$MLFLOW_TRACKING_USERNAME \
+            --build-arg DAGSHUB_TOKEN=$MLFLOW_TRACKING_PASSWORD \
+            .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          
-          
-  Continuous-Deployment:
-    needs: build-and-push-ecr-image
-    runs-on: self-hosted
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" # Deprecated but still used by some actions
 
-      - name: Configure AWS credentials
+  # --- Phase 4: Continuous Deployment (CD) ---
+  continuous-deployment:
+    name: Deploy to Self-Hosted Runner
+    needs: build-and-push-ecr-image 
+    runs-on: self-hosted 
+    steps:
+      - name: Configure AWS credentials (if needed for pulling from ECR on self-hosted)
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
+          
       - name: Login to Amazon ECR
-        id: login-ecr
+        id: login-ecr-self-hosted
         uses: aws-actions/amazon-ecr-login@v1
       
-      
-      - name: Pull latest images
+      - name: Pull latest image
         run: |
-         docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-         
-      # - name: Stop and remove container if running
-      #   run: |
-      #    docker ps -q --filter "name=mlproj" | grep -q . && docker stop mlproj && docker rm -fv mlproj
-       
-      - name: Run Docker Image to serve users
+          docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+      - name: Stop and remove previous container (if running)
         run: |
-         docker run -d -p 8080:8080 --name=mlproj -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}'  ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-      - name: Clean previous images and containers
+          # Stop and remove container only if it's running/exists (|| true prevents failure)
+          docker ps -a --filter "name=mlproj" --format "{{.ID}}" | xargs -r docker stop || true
+          docker ps -a --filter "name=mlproj" --format "{{.ID}}" | xargs -r docker rm -fv || true
+
+      - name: Run New Docker Image to serve users
         run: |
-         docker system prune -f
+          # Pass MLflow configuration and run ID as environment variables to the running container
+          docker run -d -p 8080:8080 --name=mlproj \
+            -e 'MLFLOW_TRACKING_URI=${{ env.MLFLOW_TRACKING_URI }}' \
+            -e 'MLFLOW_TRACKING_USERNAME=${{ env.MLFLOW_TRACKING_USERNAME }}' \
+            -e 'MLFLOW_TRACKING_PASSWORD=${{ env.MLFLOW_TRACKING_PASSWORD }}' \
+            -e 'MLFLOW_RUN_ID=${{ needs.full-model-training.outputs.run_id }}' \
+            -e 'ML_ARTIFACTS_DIR=artifacts/downloaded_model' \ # New ENV var for download script
+            ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+      - name: Clean previous images and containers (optional, careful with this)
+        run: |
+          docker system prune -f || true # Add || true to allow step to pass even if nothing to prune

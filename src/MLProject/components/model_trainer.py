@@ -42,17 +42,20 @@ class ModelTrainer:
         )
         
         # Start MLflow run for logging
-        with mlflow.start_run():
+        # Capture the run object to get run_id later
+        with mlflow.start_run() as run: # Changed to 'as run'
+            run_id = run.info.run_id # Get the current run ID
+            logger.info(f"MLflow Run ID: {run_id}")
+
             if self.config.perform_tuning:
                 logger.info("Starting RandomizedSearchCV for CatBoostRegressor...")
                 random_search = RandomizedSearchCV(
                     estimator=base_model,
                     param_distributions=param_dist,
-                    n_iter=self.config.n_iter_search, # Will read from params.yaml
-                    cv=self.config.cv_folds,           # Will read from params.yaml
+                    n_iter=self.config.n_iter_search,
+                    cv=self.config.cv_folds,
                     scoring=self.config.scoring_metric,
-                    n_jobs=2, # <--- CHANGE THIS: Use 2 CPU cores. Start here for stability.
-                              #     You can try 4 later if stable. Avoid -1.
+                    n_jobs=2, # Using n_jobs=2 as discussed for stability
                     verbose=1,
                     random_state=42,
                     refit=True 
@@ -67,25 +70,35 @@ class ModelTrainer:
                 logger.info(f"RandomizedSearchCV completed. Best parameters: {best_params}")
                 logger.info(f"Best CV {self.config.scoring_metric} score: {best_score:.4f}")
 
-                # Log the best parameters found by tuning
-                mlflow.log_params(best_params) 
+                mlflow.log_params(best_params)
                 mlflow.log_metric(f"best_cv_score_{self.config.scoring_metric}", best_score)
                 logger.info(f"Logged best parameters and best CV score to MLflow.")
 
-            else: 
+            else: # If tuning is disabled
                 logger.info("Tuning is disabled. Training CatBoostRegressor with default parameters...")
                 best_model = base_model.set_params(**self.config.params)
                 best_model.fit(train_x, train_y)
                 best_params = self.config.params
 
-                mlflow.log_params(best_params) 
+                mlflow.log_params(best_params)
                 logger.info(f"Logged default CatBoostRegressor parameters to MLflow: {best_params}")
 
+            # Save the model and preprocessor locally first (for joblib load in pipeline/local testing)
             model_save_path = os.path.join(self.config.root_dir, self.config.model_name)
             joblib.dump(best_model, model_save_path)
-            logger.info(f"Trained model saved to {model_save_path}")
+            logger.info(f"Trained model saved locally to {model_save_path}")
 
+            # NEW: Load the preprocessor that was saved by DataTransformation stage
+            preprocessor_path = os.path.join(self.config.root_dir.parent.parent, "data_transformation", "preprocessor.joblib")
+            preprocessor_obj = joblib.load(preprocessor_path) # Load the preprocessor
+
+            # Log the model and preprocessor as MLflow artifacts
+            # mlflow.sklearn.log_model logs the model into its own 'model' artifact folder
             mlflow.sklearn.log_model(best_model, "model")
-            logger.info("Model logged to MLflow artifacts.")
+            logger.info("Trained model logged as MLflow artifact (under 'model' path).")
+
+            # Log the preprocessor as a separate artifact
+            mlflow.log_artifact(local_path=preprocessor_path, artifact_path="preprocessor") # Log the preprocessor.joblib
+            logger.info("Preprocessor logged as MLflow artifact (under 'preprocessor' path).")
 
         logger.info("Model training stage completed successfully.")

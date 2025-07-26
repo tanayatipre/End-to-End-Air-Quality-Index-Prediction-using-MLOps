@@ -7,14 +7,22 @@ from MLProject.config.configuration import ConfigurationManager
 from MLProject.entity.config_entity import DataTransformationConfig 
 from MLProject import logger
 
+# Define the new base directory for downloaded artifacts within the container.
+# This MUST match the `ML_ARTIFACTS_DIR` environment variable value set in entrypoint.sh and Dockerfile,
+# and where download_ml_artifacts.py will save the files.
+DOWNLOADED_ARTIFACTS_DIR = "artifacts/downloaded_model" 
+
 class PredictionPipeline:
     def __init__(self):
         self.config_manager = ConfigurationManager()
         self.data_transformation_config = self.config_manager.get_data_transformation_config() 
 
-        self.preprocessor = joblib.load(Path(os.path.join(self.data_transformation_config.root_dir, self.data_transformation_config.preprocessor_name))) 
-        self.model = joblib.load(Path('artifacts/model_trainer/model.joblib')) 
-        logger.info("PredictionPipeline initialized: preprocessor and model loaded.")
+        # --- CRITICAL CHANGE FOR MLFLOW ARTIFACT DOWNLOAD ---
+        # Load the preprocessor and model from the directory where they are downloaded
+        # by the download_ml_artifacts.py script at container startup.
+        self.preprocessor = joblib.load(Path(os.path.join(DOWNLOADED_ARTIFACTS_DIR, "preprocessor.joblib"))) 
+        self.model = joblib.load(Path(os.path.join(DOWNLOADED_ARTIFACTS_DIR, "model.joblib"))) 
+        logger.info("PredictionPipeline initialized: preprocessor and model loaded from downloaded MLflow artifacts.")
 
         numerical_cols_from_params = self.data_transformation_config.numerical_cols
         categorical_cols_from_params = self.data_transformation_config.categorical_cols
@@ -40,8 +48,8 @@ class PredictionPipeline:
             data_to_transform = raw_input_data.copy()
             logger.info(f"Received raw input data for prediction. Shape: {data_to_transform.shape}")
 
-            logger.debug(f"PredictionPipeline: raw_input_data dtypes (from Flask form):\n{raw_input_data.dtypes}") # NEW
-            logger.debug(f"PredictionPipeline: raw_input_data head (from Flask form):\n{raw_input_data.head()}") # NEW
+            logger.debug(f"PredictionPipeline: raw_input_data dtypes (from Flask form):\n{raw_input_data.dtypes}")
+            logger.debug(f"PredictionPipeline: raw_input_data head (from Flask form):\n{raw_input_data.head()}")
 
             if 'Date' in data_to_transform.columns:
                 data_to_transform['Date'] = pd.to_datetime(data_to_transform['Date'], errors='coerce')
@@ -61,13 +69,11 @@ class PredictionPipeline:
                     data_to_transform = data_to_transform.drop(columns=[col])
                     logger.debug(f"Dropped column '{col}' from prediction input.")
 
-            # NEW DEBUGGING: Check data_to_transform state before reindex
             logger.debug(f"PredictionPipeline: data_to_transform columns BEFORE reindex: {data_to_transform.columns.tolist()}")
             logger.debug(f"PredictionPipeline: data_to_transform dtypes BEFORE reindex:\n{data_to_transform.dtypes}")
 
             data_for_ct = data_to_transform.reindex(columns=self.all_expected_ct_columns_ordered)
             
-            # NEW DEBUGGING: Check data_for_ct state after reindex
             logger.debug(f"PredictionPipeline: data_for_ct columns AFTER reindex: {data_for_ct.columns.tolist()}")
             logger.debug(f"PredictionPipeline: data_for_ct dtypes AFTER reindex:\n{data_for_ct.dtypes}")
             logger.debug(f"PredictionPipeline: data_for_ct head AFTER reindex:\n{data_for_ct.head()}")
