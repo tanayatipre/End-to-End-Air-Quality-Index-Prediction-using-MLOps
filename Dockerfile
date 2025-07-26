@@ -1,5 +1,5 @@
 # Declare build arguments at the very top.
-ARG MLFLOW_RUN_ID_ARG # Renamed ARGs slightly for clarity
+ARG MLFLOW_RUN_ID_ARG
 ARG MLFLOW_TRACKING_URI_ARG
 ARG MLFLOW_TRACKING_USERNAME_ARG
 ARG MLFLOW_TRACKING_PASSWORD_ARG
@@ -38,14 +38,12 @@ ENV ML_ARTIFACTS_DIR /app/artifacts/downloaded_model
 RUN mkdir -p ${ML_ARTIFACTS_DIR}
 
 # Set MLflow environment variables for subsequent RUN commands and for the container's runtime.
-# This ensures they are consistently available.
 ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG}
 ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG}
 ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG}
-ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID_ARG} # Reference the renamed ARG here
+ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID_ARG}
 
 # Run the Python script to download the model and preprocessor artifacts from MLflow.
-# It will now directly read the ENV variables set above.
 RUN python /app/download_ml_artifacts.py
 
 ENTRYPOINT ["/app/entrypoint.sh"]
