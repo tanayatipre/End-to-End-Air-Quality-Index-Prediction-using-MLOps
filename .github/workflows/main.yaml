@@ -20,7 +20,8 @@ permissions:
   contents: read  
 
 env: 
-  MLFLOW_TRACKING_URI: https://dagshub.com/${{ github.repository }}.mlflow 
+  # --- CRITICAL FIX: Explicitly set the correct MLflow Tracking URI ---
+  MLFLOW_TRACKING_URI: https://dagshub.com/tanayatipre8/End-to-End-Machine-Learning-Project-with-MLFlow.mlflow 
   MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }} 
   MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }} 
 
@@ -106,11 +107,12 @@ jobs:
     needs: full-model-training # Depends on successful model training for run_id
     runs-on: ubuntu-latest
     
-    env:
+    env: 
+      # Pass necessary MLflow envs to Docker build-time args
       MLFLOW_RUN_ID_BUILD_ARG: ${{ needs.full-model-training.outputs.run_id }}
       DAGSHUB_USERNAME_BUILD_ARG: ${{ secrets.DAGSHUB_USERNAME }}
       DAGSHUB_TOKEN_BUILD_ARG: ${{ secrets.DAGSHUB_TOKEN }}
-      GITHUB_REPOSITORY_BUILD_ARG: ${{ github.repository }}
+      GITHUB_REPOSITORY_BUILD_ARG: ${{ github.repository }} # Still useful for context/other purposes if needed
 
     steps:
       - name: Checkout Code
@@ -144,6 +146,7 @@ jobs:
             --build-arg GITHUB_REPOSITORY="${{ env.GITHUB_REPOSITORY_BUILD_ARG }}" \
             --build-arg MLFLOW_TRACKING_USERNAME="${{ env.DAGSHUB_USERNAME_BUILD_ARG }}" \
             --build-arg MLFLOW_TRACKING_PASSWORD="${{ env.DAGSHUB_TOKEN_BUILD_ARG }}" \
+            --build-arg MLFLOW_TRACKING_URI="${{ env.MLFLOW_TRACKING_URI }}" \ # Pass MLFLOW_TRACKING_URI as build-arg
             .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
@@ -185,4 +188,4 @@ jobs:
 
       - name: Clean previous images and containers (optional, careful with this)
         run: |
-          docker system prune -f || true 
+          docker system prune -f || true
