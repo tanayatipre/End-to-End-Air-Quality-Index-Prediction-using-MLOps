@@ -1,7 +1,7 @@
 ARG MLFLOW_RUN_ID
-ARG MLFLOW_TRACKING_URI_ARG
-ARG MLFLOW_TRACKING_USERNAME_ARG
-ARG MLFLOW_TRACKING_PASSWORD_ARG
+ARG MLFLOW_TRACKING_URI
+ARG MLFLOW_TRACKING_USERNAME
+ARG MLFLOW_TRACKING_PASSWORD
 
 FROM python:3.9-slim-bookworm
 
@@ -21,22 +21,21 @@ COPY params.yaml /app/
 COPY schema.yaml /app/
 COPY templates /app/templates/
 COPY static /app/static/
-
 COPY ./download_ml_artifacts.py /app/
 COPY ./entrypoint.sh /app/
 
 RUN chmod +x /app/entrypoint.sh
 
-ENV ML_ARTIFACTS_DIR /app/artifacts/downloaded_model
+ENV ML_ARTIFACTS_DIR=/app/artifacts/downloaded_model
 RUN mkdir -p ${ML_ARTIFACTS_DIR}
 
-ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI_ARG}
-ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME_ARG}
-ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD_ARG}
-ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID_ARG}
+ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI}
+ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME}
+# ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD}  # Avoid if secret
+ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID}
 
-RUN python /app/download_ml_artifacts.py
+# Move this to entrypoint if it needs live secrets
+# RUN python /app/download_ml_artifacts.py
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-
 CMD ["python", "app.py"]
