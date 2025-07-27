@@ -19,13 +19,7 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
 
 ---
 
-### Implemented ML Pipeline Stages
-
-Got it! Here's the revised version with the **HTML/CSS frontend** instead of Streamlit, keeping everything else the same:
-
----
-
-### ML Pipeline Stages**
+### ML Pipeline Stages
 
 1. **Data Ingestion:**
    Fetched raw air quality data from CSV files containing pollutant and AQI measurements (2015–2020).
