@@ -25,7 +25,7 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
    Fetched raw air quality data from CSV files containing pollutant and AQI measurements (2015–2020).
 
 2. **Data Validation:**
-   Checked for missing values, data type mismatches, and outliers using Pandas profiling and manual inspection.
+   Checked for missing values, data type mismatches, and outliers using Pandas library and data visualization.
 
 3. **Data Transformation:**
    Dropped irrelevant columns (e.g., Xylene), applied log transformation, and standardized features.
@@ -34,7 +34,7 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
    Trained a CatBoost Regressor to predict AQI, and tuned it's hyperparameters.
 
 5. **Model Evaluation:**
-   *Evaluated model performance on test data using RMSE, MAE, and R² metrics; visualized residuals and predictions.
+   Evaluated model performance on test data using RMSE, MAE, and R² metrics; visualized residuals and predictions.
 
 6. **Model Packaging:**
    Logged model artifacts, metrics, and parameters using MLflow for reproducibility and version control.
@@ -43,7 +43,7 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
    Containerized the model with Docker and deployed it via GitHub Actions to an AWS ECR staging environment.
 
 8. **Prediction Interface:**
-   Built a clean HTML/CSS frontend to collect inputs and display AQI predictions in real time.*
+   Built a clean HTML/CSS frontend to collect inputs and display AQI predictions in real time.
 
 
 ---
