@@ -1,6 +1,6 @@
 ## End-to-End Air Quality Index Prediction using MLOps
 
-![Air Pollution](assets/AQI_Predictor.png)
+![Air Pollution](static/assets/AQI_Predictor.png)
 
 This project builds an end-to-end machine learning pipeline for predicting the Air Quality Index (AQI), integrated with MLOps practices for automation, tracking, and deployment.
 
@@ -32,14 +32,14 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
 
 ### MLOps Stack
 
-| Tool      | Purpose                   |
-|-----------|---------------------------|
-| 🧪 **MLflow**      | Experiment tracking         |
-| 🐙 **GitHub Actions** | CI/CD automation            |
-| 🐳 **Docker**        | Containerization            |
-| ☁️ **AWS ECR**       | Docker image hosting        |
-| 🌐 **DagsHub**       | Remote MLflow tracking      |
-
+<p>
+  <img src="https://img.shields.io/badge/-MLflow-02020A?style=for-the-badge&logo=mlflow&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Scikit--Learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" />
+  <img src="https://img.shields.io/badge/-GitHub Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/-AWS ECR-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
+  <img src="https://img.shields.io/badge/-DagsHub-F9AB00?style=for-the-badge&logo=dataiku&logoColor=white" />
+</p>
 ---
 
 ### Features
@@ -54,31 +54,29 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
 
 ```
 .
-├── src/MLProject/       # Core ML code
-│   ├── components/      # Pipeline steps
-│   ├── pipeline/        # Pipeline orchestration
-│   └── utils/           # Helper functions
-├── config/              # Configuration files
-├── research/            # Jupyter notebooks
-├── templates/           # Flask HTML templates
-├── static/              # Static web assets
-├── main.py              # Runs the ML pipeline
-├── app.py               # Flask app for prediction
-├── download_ml_artifacts.py
-├── Dockerfile
-├── .github/workflows/   # CI/CD pipeline
-├── requirements.txt
-└── README.md
+├── .github/workflows/       # GitHub Actions CI/CD workflow definitions
+├── artifacts/               # Local repository for pipeline output artifacts
+├── config/                  # Configuration files (e.g., config.yaml)
+├── logs/                    # Runtime logs for pipeline executions
+├── research/                # Jupyter notebooks for exploratory data analysis and initial experimentation
+├── src/MLProject/           # Core Python source code for the ML application
+│   ├── components/          # Modular implementations of individual pipeline steps
+│   ├── config/              # Configuration loading and management
+│   ├── constants/           # Global constants
+│   ├── entity/              # Data classes for defining data structures and configurations
+│   ├── pipeline/            # Orchestrates the sequence of ML pipeline stages
+│   └── utils/               # General utility functions
+├── static/                  # Web assets (CSS, images) for the Flask application
+├── templates/               # HTML templates for the Flask web UI
+├── .gitignore               # Specifies files/directories to be ignored by Git
+├── app.py                   # Flask web application entry point
+├── Dockerfile               # Docker image build instructions
+├── download_ml_artifacts.py # Python script for downloading MLflow artifacts
+├── entrypoint.sh            # Entrypoint script for the Docker container
+├── main.py                  # Main script to execute the full ML training pipeline
+├── params.yaml              # Parameter configurations for models and pipeline steps
+├── README.md                # This document
+├── requirements.txt         # Python package dependencies
+└── schema.yaml              # Defines the expected data schema for validation
+
 ```
-
----
-
-### Run the App
-
-```bash
-python main.py         # Run training pipeline
-python app.py          # Launch Flask prediction app
-```
-
----
-
