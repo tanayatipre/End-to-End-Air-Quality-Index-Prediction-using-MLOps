@@ -118,12 +118,52 @@ jobs:
 
       # --- FIX: Mask Docker Password ---
       - name: Login to Amazon ECR
-        id: login-ecr # This ID is fine here
+        id: login-ecr
         run: |
           echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
           echo "::set-output name=registry::${{ steps.login-ecr.outputs.registry }}" # This output is needed by subsequent steps
         env:
+          # Pass the registry URL as an environment variable to the step
+          # This is needed because the original aws-actions/amazon-ecr-login@v1 action
+          # sets this output, which we now manually capture.
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }} # Assuming you have this secret
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          # The aws-actions/amazon-ecr-login@v1 action typically handles this for you.
+          # If you don't have AWS_ACCOUNT_ID as a separate secret, you might need to
+          # derive the registry URL like: <YOUR_AWS_ACCOUNT_ID>.dkr.ecr.<YOUR_AWS_REGION>.amazonaws.com
+          # For simplicity, we'll use the output from the original action if it was working.
+          # Let's revert to the action for login for robustness, and ensure the password is masked.
+          # Actually, the aws-actions/amazon-ecr-login@v1 action itself is designed to mask.
+          # The warning comes if you use a direct 'docker login' command.
+          # Let's use the action and ensure it's configured for masking.
+          # The action itself should handle masking. The warning you saw might be from a previous direct 'docker login' attempt.
+          # If you are using aws-actions/amazon-ecr-login@v1, it should mask the password automatically.
+          # The warning "Your docker password is not masked" suggests you might have a custom 'run' step for login.
+          # Let's stick to the action, as it's safer.
+          # Re-checking the provided logs, the warning came from 'Run aws-actions/amazon-ecr-login@v1'.
+          # This is unusual as the action itself should mask.
+          # It might be an older version of the action, or a specific configuration.
+          # Let's try to force the masking by using a more explicit run command *if* the action doesn't mask.
+          # However, the best practice is to use the action.
+
+          # The warning "Your docker password is not masked" comes from aws-actions/amazon-ecr-login@v1 itself.
+          # This is often due to how the action internally uses docker login.
+          # A common workaround is to use the AWS CLI's get-login-password command.
+
+      # --- REVISED FIX: Mask Docker Password using AWS CLI ---
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: |
+          # Get ECR login password using AWS CLI and pipe it to docker login --password-stdin
+          AWS_ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}" # Assuming you have this secret
+          AWS_REGION="${{ secrets.AWS_REGION }}"
+          ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+          echo "::set-output name=registry::$ECR_REGISTRY" # Set output for subsequent steps
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
 
 
@@ -157,7 +197,7 @@ jobs:
           
       # --- REVISED FIX: Mask Docker Password for Self-Hosted Runner ---
       - name: Login to Amazon ECR (Self-Hosted)
-        id: deploy-login-ecr # <--- CHANGED ID: From 'login-ecr-self-hosted' to 'deploy-login-ecr'
+        id: login-ecr-self-hosted
         run: |
           # Get ECR login password using AWS CLI and pipe it to docker login --password-stdin
           AWS_ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}" # Assuming you have this secret
@@ -165,6 +205,7 @@ jobs:
           ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
           
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+          # No output needed from this step for subsequent steps, as image is pulled directly.
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
