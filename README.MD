@@ -2,7 +2,7 @@
 
 ![Air Pollution](static/assets/AQI_Predictor.png)
 
-This project builds an end-to-end machine learning pipeline for predicting the Air Quality Index (AQI), integrated with MLOps practices for automation, tracking, and deployment.
+
 
 ---
 
@@ -31,15 +31,15 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
 ---
 
 ### MLOps Stack
-
-<p>
-  <img src="https://img.shields.io/badge/-MLflow-02020A?style=for-the-badge&logo=mlflow&logoColor=white" />
-  <img src="https://img.shields.io/badge/-Scikit--Learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" />
-  <img src="https://img.shields.io/badge/-GitHub Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" />
-  <img src="https://img.shields.io/badge/-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/-AWS ECR-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
-  <img src="https://img.shields.io/badge/-DagsHub-F9AB00?style=for-the-badge&logo=dataiku&logoColor=white" />
+<p align="left">
+  <img src="https://img.shields.io/badge/-MLflow-3B4CCA?style=for-the-badge&logo=mlflow&logoColor=F0F0F0" />
+  <img src="https://img.shields.io/badge/-Streamlit-C95B5B?style=for-the-badge&logo=streamlit&logoColor=F5F5F5" />
+  <img src="https://img.shields.io/badge/-Scikit--Learn-E8A87C?style=for-the-badge&logo=scikitlearn&logoColor=303030" />
+  <img src="https://img.shields.io/badge/-NLP-9A7D0A?style=for-the-badge&logo=spacy&logoColor=F8F9F9" />
+  <img src="https://img.shields.io/badge/-Azure-5DADE2?style=for-the-badge&logo=microsoftazure&logoColor=FDFEFE" />
+  <img src="https://img.shields.io/badge/-GitHub-6E6E6E?style=for-the-badge&logo=github&logoColor=F4F6F6" />
 </p>
+
 ---
 
 ### Features
