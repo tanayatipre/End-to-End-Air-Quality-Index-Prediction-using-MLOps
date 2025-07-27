@@ -1,58 +1,70 @@
 import os
 import mlflow
-import joblib
-import logging
-import sys
+from mlflow.artifacts import download_artifacts
 from pathlib import Path
+import logging
+import sys # Import sys for sys.exit()
+import shutil # Import shutil for shutil.rmtree()
 
-# Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure logger
 logger = logging.getLogger(__name__)
+# Ensure logger is configured if running standalone, otherwise MLProject's __init__.py configures it
+if not logger.handlers:
+    logging.basicConfig(level=logging.INFO, format='[%(asctime)s]: %(levelname)s: %(message)s')
 
-def download_artifacts(run_id: str, local_dir: str):
+def download_artifacts_from_mlflow():
     """
-    Downloads the model and preprocessor artifacts for a given MLflow Run ID.
-    The local_dir argument specifies the *base* directory where artifacts should be saved.
+    Downloads model and preprocessor artifacts from a specified MLflow run ID
+    to a local directory, relying on environment variables for configuration.
     """
-    logger.info(f"Attempting to download artifacts for MLflow Run ID: {run_id} to {local_dir}")
+    mlflow_run_id = os.environ.get("MLFLOW_RUN_ID")
+    ml_artifacts_dir = os.environ.get("ML_ARTIFACTS_DIR")
     
-    # MLflow client automatically picks up MLFLOW_TRACKING_URI, USERNAME, PASSWORD from ENV
-    client = mlflow.tracking.MlflowClient()
+    # Ensure environment variables are set
+    if not mlflow_run_id:
+        logger.error("MLFLOW_RUN_ID environment variable not set. Cannot download artifacts.")
+        return False
+    if not ml_artifacts_dir:
+        logger.error("ML_ARTIFACTS_DIR environment variable not set. Cannot download artifacts.")
+        return False
+
+    # Clean and normalize the target directory path
+    # Path().as_posix() converts to forward slashes for cross-platform compatibility
+    # .strip() removes any leading/trailing whitespace that could cause WinError 3
+    ml_artifacts_dir_clean = Path(ml_artifacts_dir).as_posix().strip()
+
+    logger.info(f"Starting artifact download for Run ID: {mlflow_run_id} to directory: {ml_artifacts_dir_clean}")
 
     try:
-        # Check if the run exists
-        run = client.get_run(run_id)
-        if not run:
-            logger.error(f"MLflow Run ID '{run_id}' not found.")
-            return False
+        # Define the base temporary download location for MLflow artifacts
+        # MLflow downloads artifacts into a structure like <dst_path>/<artifact_path>/<files>
+        temp_mlflow_download_base_path = Path(ml_artifacts_dir_clean) / ".temp_mlflow_download"
+        
+        # Ensure the base temporary download directory exists
+        os.makedirs(temp_mlflow_download_base_path, exist_ok=True)
+        
+        logger.info(f"Attempting to download artifacts for MLflow Run ID: {mlflow_run_id} to {temp_mlflow_download_base_path}")
 
-        # Define target local paths within the container's expected structure
-        # These paths must match where PredictionPipeline expects to load them.
-        # MLflow logs 'model' and 'preprocessor' as subdirectories.
-        model_target_path = Path(local_dir) / "model" / "model.joblib"
-        preprocessor_target_path = Path(local_dir) / "preprocessor" / "preprocessor.joblib"
-
-        os.makedirs(model_target_path.parent, exist_ok=True) # Ensure target dir for model
-        os.makedirs(preprocessor_target_path.parent, exist_ok=True) # Ensure target dir for preprocessor
-
-        # Download the model artifact
-        # mlflow.artifacts.download_artifacts will download the 'model' folder.
-        # We then need to find the actual model file inside it.
-        downloaded_model_folder = mlflow.artifacts.download_artifacts(
-            run_id=run_id,
-            artifact_path="model", # The artifact_path in MLflow UI
-            dst_path=str(model_target_path.parent.parent), # Download 'model' folder into the base downloaded_model dir
+        # --- Download Model Artifact ---
+        # artifact_path="model" means download the entire 'model' folder
+        downloaded_model_folder = download_artifacts(
+            run_id=mlflow_run_id,
+            artifact_path="model", # The artifact_path in MLflow UI for the model folder
+            dst_path=str(temp_mlflow_download_base_path), # Download 'model' folder into the temp_mlflow_download dir
             tracking_uri=mlflow.get_tracking_uri()
         )
+        logger.info(f"Model artifact downloaded to: {downloaded_model_folder}")
+
+        # Define final target path for the model.joblib
+        model_target_path = Path(ml_artifacts_dir_clean) / "model.joblib"
         
-        # Verify the downloaded model path and move the actual model file
-        # The model file is typically inside 'model/' folder downloaded by MLflow
-        actual_model_file_in_download = Path(downloaded_model_folder) / "model.joblib" # Assuming it's named model.joblib inside
+        # Move the actual model.joblib file from inside the downloaded 'model' folder
+        actual_model_file_in_download = Path(downloaded_model_folder) / "model.joblib" 
         if not actual_model_file_in_download.exists():
-            # Fallback for older MLflow versions or different naming conventions
+            # Fallback for older MLflow versions or different naming conventions if model.joblib isn't directly in 'model/'
             for root, _, files in os.walk(downloaded_model_folder):
                 for f in files:
-                    if f.endswith((".pkl", ".joblib")):
+                    if f.endswith((".pkl", ".joblib")): # Check for .pkl or .joblib extensions
                         actual_model_file_in_download = Path(root) / f
                         break
                 if actual_model_file_in_download.exists():
@@ -64,23 +76,44 @@ def download_artifacts(run_id: str, local_dir: str):
         else:
             logger.error("Could not find actual model file within the downloaded MLflow 'model' artifact.")
             return False
-        
-        # Clean up the temporary 'model' subdirectory if it was created
-        if Path(downloaded_model_folder).exists() and Path(downloaded_model_folder).is_dir():
-            os.rmdir(downloaded_model_folder) # Should be empty after moving model file
 
-        # Download the preprocessor artifact
-        downloaded_preprocessor_file = mlflow.artifacts.download_artifacts(
-            run_id=run_id,
-            artifact_path="preprocessor/preprocessor.joblib", # Full artifact path
-            dst_path=str(preprocessor_target_path.parent), # Download into the 'preprocessor' subdirectory
+        # --- Download Preprocessor Artifact ---
+        # artifact_path="preprocessor" means download the entire 'preprocessor' folder
+        downloaded_preprocessor_folder = download_artifacts(
+            run_id=mlflow_run_id,
+            artifact_path="preprocessor", # The artifact_path in MLflow UI for the preprocessor folder
+            dst_path=str(temp_mlflow_download_base_path), # Download 'preprocessor' folder into the temp_mlflow_download dir
             tracking_uri=mlflow.get_tracking_uri()
         )
+        logger.info(f"Preprocessor artifact downloaded to: {downloaded_preprocessor_folder}")
+
+        # Define final target path for the preprocessor.joblib
+        preprocessor_target_path = Path(ml_artifacts_dir_clean) / "preprocessor.joblib"
+
+        # Move the actual preprocessor.joblib file from inside the downloaded 'preprocessor' folder
+        actual_preprocessor_file_in_download = Path(downloaded_preprocessor_folder) / "preprocessor.joblib" 
+        if not actual_preprocessor_file_in_download.exists():
+            # Fallback if preprocessor.joblib isn't directly in 'preprocessor/'
+            for root, _, files in os.walk(downloaded_preprocessor_folder):
+                for f in files:
+                    if f.endswith((".pkl", ".joblib")):
+                        actual_preprocessor_file_in_download = Path(root) / f
+                        break
+                if actual_preprocessor_file_in_download.exists():
+                    break
         
-        # Ensure it's named correctly in the final location
-        if Path(downloaded_preprocessor_file).name != preprocessor_target_path.name:
-             os.rename(downloaded_preprocessor_file, preprocessor_target_path)
-        logger.info(f"Preprocessor downloaded and saved to: {preprocessor_target_path}")
+        if actual_preprocessor_file_in_download.exists():
+            os.rename(str(actual_preprocessor_file_in_download), str(preprocessor_target_path))
+            logger.info(f"Preprocessor downloaded and saved to: {preprocessor_target_path}")
+        else:
+            logger.error(f"Preprocessor artifact not found at expected path: {preprocessor_src_path}") # Corrected var name
+            return False
+
+        # --- Clean up temporary download directory ---
+        # This will remove the .temp_mlflow_download folder and all its contents
+        if temp_mlflow_download_base_path.exists() and temp_mlflow_download_base_path.is_dir():
+            shutil.rmtree(temp_mlflow_download_base_path) 
+            logger.info(f"Cleaned up temporary download directory: {temp_mlflow_download_base_path}")
 
         return True
 
@@ -91,7 +124,7 @@ def download_artifacts(run_id: str, local_dir: str):
 if __name__ == "__main__":
     # The run_id and artifact_base_dir are passed as environment variables by entrypoint.sh
     run_id = os.environ.get("MLFLOW_RUN_ID") 
-    artifact_base_dir = os.environ.get("ML_ARTIFACTS_DIR") 
+    artifact_base_dir = os.environ.get("ML_ARTIFACTS_DIR", "").strip()
     
     # MLflow tracking URI and credentials are also read from environment variables by MLflow client
     # No need to explicitly read them here, just ensure they are set in the environment.
@@ -103,9 +136,8 @@ if __name__ == "__main__":
         logger.error("ML_ARTIFACTS_DIR environment variable not set. Cannot download artifacts.")
         sys.exit(1)
 
-    logger.info(f"Starting artifact download for Run ID: {run_id} to directory: {artifact_base_dir}")
-    if download_artifacts(run_id, artifact_base_dir):
-        logger.info("ML artifacts downloaded successfully.")
-    else:
+    # Call the main download function
+    success = download_artifacts_from_mlflow()
+    if not success:
         logger.error("Failed to download ML artifacts. Exiting.")
         sys.exit(1)
