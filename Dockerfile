@@ -34,8 +34,6 @@ ENV MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME}
 # ENV MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD}  # Avoid if secret
 ENV MLFLOW_RUN_ID=${MLFLOW_RUN_ID}
 
-# Move this to entrypoint if it needs live secrets
-# RUN python /app/download_ml_artifacts.py
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["python", "app.py"]
