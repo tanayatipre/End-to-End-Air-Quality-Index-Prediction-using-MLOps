@@ -1,89 +1,84 @@
-
 ## End-to-End Air Quality Index Prediction using MLOps
 
-This project establishes a machine learning pipeline for predicting the Air Quality Index (AQI). The focus is on building an automated MLOps framework that covers the entire lifecycle from data acquisition to model deployment and serving.
+![Air Pollution](assets/AQI_Predictor.png)
+
+This project builds an end-to-end machine learning pipeline for predicting the Air Quality Index (AQI), integrated with MLOps practices for automation, tracking, and deployment.
 
 ---
 
 ### Project Overview
 
-The objective of this project is to predict the Air Quality Index (AQI) based on various atmospheric pollutant concentrations. The implemented solution is designed as an end-to-end machine learning pipeline, incorporating MLOps principles for automation.
+The goal is to predict AQI based on atmospheric pollutant levels using an automated ML pipeline governed by MLOps practices. The solution spans data collection to live model deployment.
 
 ---
 
-### Dataset Information
+### Dataset
 
-The data used for this predictive model is air quality information obtained from the **Central Pollution Control Board (CPCB)** in India. The original source for this data is [https://cpcb.nic.in/](https://cpcb.nic.in/).
-
-The dataset includes daily measurements of pollutants such as PM2.5, PM10, NO, NO2, CO, and O3, correlated with their corresponding AQI values across different Indian cities.
+The dataset is sourced from the **Central Pollution Control Board (CPCB)**: [https://cpcb.nic.in/](https://cpcb.nic.in/).  
+It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across various Indian cities.
 
 ---
 
 ### Implemented ML Pipeline Stages
 
-The project's machine learning pipeline is structured into several automated and sequential stages:
-
-1. **Data Ingestion:** Raw air quality data is acquired from the specified source.
-2. **Data Validation:** The ingested data undergoes validation against a predefined schema to ensure integrity and consistency before further processing.
-3. **Data Transformation & Feature Engineering:** This stage processes the raw data into a format suitable for model training. 
-4. **Model Training & Hyperparameter Tuning:** A **CatBoost Regressor** is employed for the prediction task. Model performance is optimized through integrated 
-5. **Model Evaluation:** Standard regression metrics such as R-squared (R²), Root Mean Squared Error (RMSE), and Mean Absolute Error (MAE) are computed. 
-
----
-
-### MLOps Tooling
-
-The project leverages several tools:
-
-* **MLflow:** Used for experiment tracking, allowing for the logging and versioning of all model training parameters, performance metrics, and generated artifacts (including the trained model and data preprocessor).
-* **DagsHub:** Serves as the remote MLflow Tracking Server. It centralizes all experiment runs, providing a web-based platform for visualization, comparison, and collaboration on model development.
-* **GitHub Actions:** Automates the Continuous Integration/Continuous Deployment (CI/CD) pipeline.
-* **Docker:** Facilitates the containerization of the prediction application.
-* **AWS ECR (Elastic Container Registry):** Used for secure storage of Docker images built by the CI/CD pipeline, making them ready for deployment.
-* **Flask:** Provides the lightweight web framework for the prediction API and user interface.
+1. Data Ingestion  
+2. Data Validation  
+3. Data Transformation & Feature Engineering  
+4. Model Training & Hyperparameter Tuning  
+5. Model Evaluation  
+6. **Model Deployment** as a real-time prediction web service using Flask & Docker
 
 ---
 
-### Model Deployment
+### MLOps Stack
 
-The trained and validated model is deployed as a live prediction service. The deployed Docker container downloads the specific pre-trained model and data preprocessor using MLflow artifacts. The service features:
-
-* A web interface for user input of pollutant data and dates
-* Real-time AQI score prediction
-* Categorization of the predicted AQI into interpretative buckets (e.g., Good, Moderate, Severe)
+| Tool      | Purpose                   |
+|-----------|---------------------------|
+| 🧪 **MLflow**      | Experiment tracking         |
+| 🐙 **GitHub Actions** | CI/CD automation            |
+| 🐳 **Docker**        | Containerization            |
+| ☁️ **AWS ECR**       | Docker image hosting        |
+| 🌐 **DagsHub**       | Remote MLflow tracking      |
 
 ---
 
-### Project Directory Structure
+### Features
 
-The project is organized into the following logical components:
+- Web interface to input pollutant values
+- Real-time AQI prediction with health category (Good, Moderate, Poor, etc.)
+- ML pipeline versioned and reproducible using MLOps
+
+---
+
+### Project Structure
 
 ```
 .
-├── .github/workflows/       # GitHub Actions CI/CD workflow definitions
-├── artifacts/               # Local repository for pipeline output artifacts
-├── config/                  # Configuration files (e.g., config.yaml)
-├── logs/                    # Runtime logs for pipeline executions
-├── research/                # Jupyter notebooks for exploratory data analysis and initial experimentation
-├── src/MLProject/           # Core Python source code for the ML application
-│   ├── components/          # Modular implementations of individual pipeline steps
-│   ├── config/              # Configuration loading and management
-│   ├── constants/           # Global constants
-│   ├── entity/              # Data classes for defining data structures and configurations
-│   ├── pipeline/            # Orchestrates the sequence of ML pipeline stages
-│   └── utils/               # General utility functions
-├── static/                  # Web assets (CSS, images) for the Flask application
-├── templates/               # HTML templates for the Flask web UI
-├── .gitignore               # Specifies files/directories to be ignored by Git
-├── app.py                   # Flask web application entry point
-├── Dockerfile               # Docker image build instructions
-├── download_ml_artifacts.py # Python script for downloading MLflow artifacts
-├── entrypoint.sh            # Entrypoint script for the Docker container
-├── main.py                  # Main script to execute the full ML training pipeline
-├── params.yaml              # Parameter configurations for models and pipeline steps
-├── README.md                # This document
-├── requirements.txt         # Python package dependencies
-└── schema.yaml              # Defines the expected data schema for validation
+├── src/MLProject/       # Core ML code
+│   ├── components/      # Pipeline steps
+│   ├── pipeline/        # Pipeline orchestration
+│   └── utils/           # Helper functions
+├── config/              # Configuration files
+├── research/            # Jupyter notebooks
+├── templates/           # Flask HTML templates
+├── static/              # Static web assets
+├── main.py              # Runs the ML pipeline
+├── app.py               # Flask app for prediction
+├── download_ml_artifacts.py
+├── Dockerfile
+├── .github/workflows/   # CI/CD pipeline
+├── requirements.txt
+└── README.md
 ```
 
+---
+
+### Run the App
+
+```bash
+python main.py         # Run training pipeline
+python app.py          # Launch Flask prediction app
+```
+
+---
 
