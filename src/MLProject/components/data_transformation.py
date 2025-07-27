@@ -114,7 +114,6 @@ class DataTransformation:
 
             # 'Xylene' and the original 'Date' column.
             columns_to_drop_from_X = [col for col in self.config.columns_to_drop_after_feature_eng if col != 'AQI_Bucket']
-            # Ensure AQI_Bucket is handled by the initial drop from 'data', not by this list for X
 
             # Drop specified columns from X (like Xylene, and the original Date if listed)
             X = X.drop(columns=[col for col in columns_to_drop_from_X if col in X.columns], errors='ignore')
