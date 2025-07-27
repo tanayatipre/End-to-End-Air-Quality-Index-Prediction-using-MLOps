@@ -21,24 +21,50 @@ It contains pollutant data such as PM2.5, PM10, NO, NO2, CO, and O3 across vario
 
 ### Implemented ML Pipeline Stages
 
-1. Data Ingestion  
-2. Data Validation  
-3. Data Transformation & Feature Engineering  
-4. Model Training & Hyperparameter Tuning  
-5. Model Evaluation  
-6. **Model Deployment** as a real-time prediction web service using Flask & Docker
+Got it! Here's the revised version with the **HTML/CSS frontend** instead of Streamlit, keeping everything else the same:
+
+---
+
+### ML Pipeline Stages**
+
+1. **Data Ingestion:**
+   Fetched raw air quality data from CSV files containing pollutant and AQI measurements (2015–2020).
+
+2. **Data Validation:**
+   Checked for missing values, data type mismatches, and outliers using Pandas profiling and manual inspection.
+
+3. **Data Transformation:**
+   Dropped irrelevant columns (e.g., Xylene), applied log transformation, and standardized features.
+
+4. **Model Training:**
+   Trained a CatBoost Regressor to predict AQI, and tuned it's hyperparameters.
+
+5. **Model Evaluation:**
+   *Evaluated model performance on test data using RMSE, MAE, and R² metrics; visualized residuals and predictions.
+
+6. **Model Packaging:**
+   Logged model artifacts, metrics, and parameters using MLflow for reproducibility and version control.
+
+7. **Model Deployment:**
+   Containerized the model with Docker and deployed it via GitHub Actions to an AWS ECR staging environment.
+
+8. **Prediction Interface:**
+   Built a clean HTML/CSS frontend to collect inputs and display AQI predictions in real time.*
+
 
 ---
 
 ### MLOps Stack
-<p align="left">
-  <img src="https://img.shields.io/badge/-MLflow-3B4CCA?style=for-the-badge&logo=mlflow&logoColor=F0F0F0" />
-  <img src="https://img.shields.io/badge/-Streamlit-C95B5B?style=for-the-badge&logo=streamlit&logoColor=F5F5F5" />
-  <img src="https://img.shields.io/badge/-Scikit--Learn-E8A87C?style=for-the-badge&logo=scikitlearn&logoColor=303030" />
-  <img src="https://img.shields.io/badge/-NLP-9A7D0A?style=for-the-badge&logo=spacy&logoColor=F8F9F9" />
-  <img src="https://img.shields.io/badge/-Azure-5DADE2?style=for-the-badge&logo=microsoftazure&logoColor=FDFEFE" />
-  <img src="https://img.shields.io/badge/-GitHub-6E6E6E?style=for-the-badge&logo=github&logoColor=F4F6F6" />
+<p>
+  <img src="https://img.shields.io/badge/-MLflow-02020A?style=for-the-badge&logo=mlflow&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Scikit--Learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" />
+  <img src="https://img.shields.io/badge/-GitHub Actions-5865F2?style=for-the-badge&logo=githubactions&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/-AWS ECR-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
+  <img src="https://img.shields.io/badge/-DagsHub-F9AB00?style=for-the-badge&logo=dataiku&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
 </p>
+
 
 ---
 
